@@ -1,0 +1,9 @@
+.env
+.env.prod
+__pycache__/
+*.pyc
+*.session
+.venv/
+venv/
+.idea/
+.DS_Store

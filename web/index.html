@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4b7196">
+<title>Дурак Онлайн</title>
+<link rel="stylesheet" href="/css/style.css?v=10">
+</head>
+<body>
+
+<section id="screen-lobby" class="screen">
+  <header class="app-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <path d="M8.5 12.5h.01M12 12.5h.01M15.5 12.5h.01"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Дурак Онлайн</h1>
+        <p>Дурачимся вместе в Telegram</p>
+      </div>
+    </div>
+    <div id="header-user" class="header-user"></div>
+  </header>
+
+  <main id="tab-content" class="tab-content"></main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="profile" title="Профиль">
+      <span class="nav-icon">♣</span>
+      <span>Профиль</span>
+    </button>
+    <button class="nav-item pink" data-tab="open" title="Открытые">
+      <span class="nav-icon">♡</span>
+      <span>Открытые</span>
+    </button>
+    <button class="nav-item gray" data-tab="private" title="Приватные">
+      <span class="nav-icon">♠</span>
+      <span>Приватные</span>
+    </button>
+    <button class="nav-item pink" data-tab="create" title="Создать игру">
+      <span class="nav-icon">◆</span>
+      <span>Создать игру</span>
+    </button>
+  </nav>
+</section>
+
+<section id="screen-game" class="screen hidden">
+  <div id="waiting-screen" class="wroom hidden"></div>
+
+  <div class="game-wrap">
+    <div id="game-scene" class="game-scene">
+      <div class="top-white"></div>
+
+      <button id="game-leave" class="scene-btn scene-leave" title="Выход">
+        <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </button>
+      <button id="game-emoji" class="scene-btn scene-emoji" title="Эмодзи">
+        <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="13" r="9"/><path d="M9 16s1.4 1.8 4 1.8 4-1.8 4-1.8"/><circle cx="10" cy="10" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1.4" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <div id="game-balance" class="money"></div>
+
+      <div class="top-icons">
+        <svg viewBox="0 0 26 26"><rect x="2.5" y="2.5" width="21" height="21" rx="5"/><path d="M16.5 8.5a5 5 0 1 0 1.5 3.5"/><path d="M18 5.5v3.5h-3.5"/></svg>
+        <svg viewBox="0 0 26 26"><path class="f" d="M3 13l6-4.5v9z"/><path class="f" d="M23 13l-6-4.5v9z"/><path d="M9 13h8"/></svg>
+        <svg viewBox="0 0 26 26"><path class="f" d="M8 10c0-3 2-5 5-5s5 2 5 5z"/><path class="f" d="M6 10h14v2H6z"/><path class="f" d="M5 21c1-4 4-6 8-6s7 2 8 6z"/></svg>
+        <svg viewBox="0 0 26 26"><rect x="8" y="2.5" width="10" height="21" rx="3"/><circle class="f" cx="13" cy="8.5" r="1.7"/><circle class="f" cx="13" cy="17.5" r="1.7"/></svg>
+      </div>
+
+      <div id="opp-more" class="opps-more"></div>
+      <section id="opp-slot" class="opp"></section>
+
+      <div id="deck-count" class="left-num"></div>
+      <div class="deck">
+        <div class="back d1"><i></i></div>
+        <div id="trump-card" class="trump cardface"></div>
+        <div class="back d2"><i></i></div>
+      </div>
+
+      <div id="table-zone" class="table-zone"></div>
+
+      <div id="hand-zone" class="hand"></div>
+
+      <div class="bottom">
+        <div id="turn-zone" class="turn-zone"></div>
+        <div id="my-avatar" class="my-avatar"></div>
+        <div class="actions">
+          <div class="action"><svg viewBox="0 0 40 40" fill="none" stroke-width="2.8"><rect x="12" y="5" width="20" height="29" rx="2" transform="rotate(-9 12 5)"/><path d="m18 13 8 11m0-11-8 11"/></svg><span class="coin">1 <b class="coin-dot">♦</b></span></div>
+          <div class="action"><svg viewBox="0 0 40 40" fill="none" stroke-width="2.7"><rect x="8" y="11" width="25" height="19" rx="3" transform="rotate(-9 8 11)"/><circle cx="21" cy="21" r="6"/><path d="M12 9 29 6"/></svg><span class="coin">3 <b class="coin-dot">♥</b></span></div>
+          <div class="action"><svg viewBox="0 0 40 40" fill="none" stroke="#555" stroke-width="2.7"><rect x="10" y="8" width="22" height="28" rx="3" transform="rotate(-8 10 8)"/><circle cx="22" cy="19" r="7"/><path d="m27 25 7 7"/></svg><span class="coin">2 <b class="coin-dot">♠</b></span></div>
+        </div>
+        <div id="footer-stats" class="footer-stats"></div>
+      </div>
+
+      <div class="navbar">
+        <button class="nav-tab" data-tab="profile" title="Профиль"><span class="nav-icon">♣</span><span>Профиль</span></button>
+        <button class="nav-tab pink" data-tab="open" title="Открытые"><span class="nav-icon">♡</span><span>Открытые</span></button>
+        <button class="nav-tab gray" data-tab="private" title="Приватные"><span class="nav-icon">♠</span><span>Приватные</span></button>
+        <button class="nav-tab pink" data-tab="create" title="Создать игру"><span class="nav-icon">◆</span><span>Создать</span></button>
+      </div>
+
+      <div id="emoji-palette" class="emoji-palette hidden">
+        <button class="emoji-btn" data-emoji="😀">😀</button>
+        <button class="emoji-btn" data-emoji="😂">😂</button>
+        <button class="emoji-btn" data-emoji="😅">😅</button>
+        <button class="emoji-btn" data-emoji="🤗">🤗</button>
+        <button class="emoji-btn" data-emoji="😍">😍</button>
+        <button class="emoji-btn" data-emoji="🥺">🥺</button>
+        <button class="emoji-btn" data-emoji="😎">😎</button>
+        <button class="emoji-btn" data-emoji="😜">😜</button>
+        <button class="emoji-btn" data-emoji="🤔">🤔</button>
+        <button class="emoji-btn" data-emoji="😴">😴</button>
+        <button class="emoji-btn" data-emoji="😡">😡</button>
+        <button class="emoji-btn" data-emoji="👍">👍</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script src="/js/telegram.js?v=7"></script>
+<script src="/js/api.js?v=7"></script>
+<script src="/js/ui.js?v=7"></script>
+<script src="/js/lobby.js?v=7"></script>
+<script src="/js/game.js?v=10"></script>
+<script src="/js/app.js?v=7"></script>
+</body>
+</html>

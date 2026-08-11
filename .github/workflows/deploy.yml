@@ -1,0 +1,20 @@
+name: Deploy PET_PROJECTS.DURAK to Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    uses: PET-PROJECTSS/PET_PROJECTS.ACTIONS/.github/workflows/deploy.yml@main
+    with:
+      project_path: /opt/projects/durak-online
+      service_name: PET_PROJECTS.DURAK
+      repo_ssh_or_https: https://github.com/PET-PROJECTSS/PET_PROJECTS.DURAK.git
+      migrations_command: ""
+    secrets:
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

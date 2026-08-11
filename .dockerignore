@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.session
+.git/
+.gitignore
+.github/
+.idea/
+.env
+.env.prod
+.env.example
+docker-compose.yml
+Dockerfile
+deploy/
+tests/
+*.md

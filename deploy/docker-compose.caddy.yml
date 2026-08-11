@@ -1,0 +1,33 @@
+# Вариант для случая, когда у сервера есть свободный поддомен и DNS A-запись на него.
+# Поднимает приложение + Caddy, который сам получает/продлевает Let's Encrypt
+# и проксирует WebSocket. Не подходит для этого сервера: тут 80/443 заняты xray-VPN.
+services:
+  durak:
+    build: .
+    restart: unless-stopped
+    expose:
+      - "8080"
+    env_file: .env.prod
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8080
+      APP_URL: https://${DURAK_DOMAIN:-durak.example.com}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DURAK_DOMAIN: ${DURAK_DOMAIN:-durak.example.com}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    command: ["sh", "-c", "caddy reverse-proxy --from $${DURAK_DOMAIN} --to durak:8080"]
+    depends_on:
+      - durak
+
+volumes:
+  caddy_data:
+  caddy_config:
