@@ -20,8 +20,6 @@ window.App = window.App || {};
       .then((data) => {
         if (data.source === "telegram") {
           me = { source: "telegram", id: data.id, name: data.name, photo: data.photo };
-        } else if (me.source === "telegram") {
-          me = { source: "guest", id: "", name: App.guestName || me.name || "Гость", photo: "" };
         }
       })
       .catch(() => {})

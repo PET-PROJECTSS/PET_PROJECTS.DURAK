@@ -31,7 +31,7 @@ def validate_init_data(init_data: str, bot_token: str) -> Optional[dict]:
         return None
     if "auth_date" in params:
         try:
-            if abs(int(params["auth_date"]) - int(time.time())) > 86400 * 2:
+            if abs(int(params["auth_date"]) - int(time.time())) > 86400 * 30:
                 return None
         except ValueError:
             return None

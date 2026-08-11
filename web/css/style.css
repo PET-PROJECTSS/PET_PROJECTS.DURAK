@@ -52,7 +52,6 @@ body {
 
 #screen-game {
   height: 100dvh;
-  min-height: 700px;
   overflow: hidden;
 }
 
