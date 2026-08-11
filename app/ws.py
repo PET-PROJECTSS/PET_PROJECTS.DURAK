@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 
@@ -39,6 +40,8 @@ def _state_for(room, pid):
             {"id": p, "name": room.players[p]["name"], "photo": room.players[p].get("photo", "")}
             for p in room.players
         ]
+        state["balance"] = manager.balance_of(pid)
+        state["stake"] = room.stake
         return {"type": "state", "state": state}
     return {
         "type": "waiting",
@@ -49,6 +52,8 @@ def _state_for(room, pid):
             {"id": p, "name": room.players[p]["name"], "photo": room.players[p].get("photo", "")}
             for p in room.players
         ],
+        "balance": manager.balance_of(pid),
+        "stake": room.stake,
     }
 
 
@@ -99,12 +104,26 @@ async def _handle_action(room, pid, data):
         game.done(pid)
     elif act == "restart":
         if game.finished:
+            room._stake_settled = False
             room.game = DurakGame(
                 list(room.players.keys()),
                 mode=room.mode,
                 throw_all=room.throw_all,
                 deck_size=room.deck_size,
             )
+    _settle(room)
+
+
+def _settle(room):
+    game = room.game
+    if getattr(room, "_stake_settled", False):
+        return
+    if not game or not game.finished or not game.winner:
+        return
+    for pid in list(room.players):
+        if pid != game.winner:
+            manager.transfer(pid, game.winner, room.stake)
+    room._stake_settled = True
 
 
 async def ws_handler(request):
@@ -151,12 +170,30 @@ async def ws_handler(request):
         if not room.players:
             manager.remove(room.id)
         elif room.status == "playing":
-            manager.remove(room.id)
+            game = room.game
+            if game and not game.finished:
+                remaining = list(room.players.keys())
+                if remaining:
+                    winner = remaining[0]
+                    game.finished = True
+                    game.winner = winner
+                    game.turn = "idle"
+                    room._stake_settled = False
+                    for rp in remaining:
+                        manager.transfer(pid, rp, room.stake)
+                    room._stake_settled = True
+            for cpid, conn in list(room.conns.items()):
+                try:
+                    await conn.send_json(_state_for(room, cpid))
+                except Exception:
+                    pass
+            await asyncio.sleep(2)
             for conn in list(room.conns.values()):
                 try:
                     await conn.close()
                 except Exception:
                     pass
+            manager.remove(room.id)
         else:
             try:
                 await broadcast(room)

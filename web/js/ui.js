@@ -15,14 +15,14 @@ window.App = window.App || {};
     return '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   };
 
-  App.telegramIconHtml = function (size) {
+  App.humanIconHtml = function (size) {
     const s = size || 64;
-    return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-label="Telegram"><defs><linearGradient id="tg-grad-${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#37BBED"/><stop offset="1" stop-color="#1E96C8"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#tg-grad-${s})"/><path fill="#fff" d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.529 1.462l4.552 1.42 10.532-6.645c.499-.303.953-.14.579.192l-8.533 7.701-.321 4.705c.253 0 .362-.117.503-.248l2.247-2.161 4.652 3.435c.857.47 1.463.228 1.678-.787l3.04-14.292c.312-1.237-.54-1.745-1.092-1.578z"/></svg>`;
+    return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" aria-label="Аватар"><rect width="100" height="100" fill="#dde3e8"/><circle cx="50" cy="36" r="24" fill="#93a1ad"/><path d="M20 96c2-30 17-46 30-46s28 16 30 46z" fill="#b2bec8"/></svg>`;
   };
 
   App.tgAvatarHtml = function (photo, size) {
     const s = size || 64;
-    return `<span class="tg-avatar" style="width:${s}px;height:${s}px">${App.telegramIconHtml(s)}${photo ? `<img src="${App.esc(photo)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</span>`;
+    return `<span class="tg-avatar" style="width:${s}px;height:${s}px">${App.humanIconHtml(s)}${photo ? `<img src="${App.esc(photo)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</span>`;
   };
 
   App.avatarHtml = function (name, photo, size, source) {
@@ -89,6 +89,36 @@ window.App = window.App || {};
       create: App.renderCreate,
     };
     if (renderers[tab]) renderers[tab]();
+  };
+
+  App.confirm = function (title, text, cb) {
+    let modal = document.getElementById("modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "modal";
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal-card">
+          <div class="modal-title">${App.esc(title || "Подтверждение")}</div>
+          <p class="modal-sub">${App.esc(text || "")}</p>
+          <div class="modal-actions">
+            <button id="modal-no" class="btn btn-ghost">Нет</button>
+            <button id="modal-yes" class="btn btn-primary">Да</button>
+          </div>
+        </div>
+      </div>`;
+    modal.classList.remove("hidden");
+    const close = () => modal.classList.add("hidden");
+    modal.querySelector("#modal-no").addEventListener("click", () => {
+      close();
+      cb(false);
+    });
+    modal.querySelector("#modal-yes").addEventListener("click", () => {
+      close();
+      cb(true);
+    });
   };
 
   App.promptPassword = function (cb) {

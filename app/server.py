@@ -28,20 +28,24 @@ def _resolve_player(payload: dict):
         res = validate_init_data(init_data, config.BOT_TOKEN)
         if res and res.get("user"):
             u = res["user"]
+            pid = f"tg{u.get('id')}"
             return {
-                "id": f"tg{u.get('id')}",
+                "id": pid,
                 "name": _full_name(u)[:40],
                 "username": str(u.get("username") or "") or None,
                 "photo": str(u.get("photo_url") or ""),
                 "source": "telegram",
+                "balance": manager.balance_of(pid),
             }
     guest_name = (payload.get("guest_name") or "").strip()
     if config.GUEST_ALLOWED:
+        pid = f"guest_{uuid.uuid4().hex[:8]}"
         return {
-            "id": f"guest_{uuid.uuid4().hex[:8]}",
+            "id": pid,
             "name": guest_name[:32] or "Гость",
             "photo": "",
             "source": "guest",
+            "balance": manager.balance_of(pid),
         }
     return None
 
@@ -60,13 +64,15 @@ async def me_handler(request):
             res = None
         if res and res.get("user"):
             u = res["user"]
+            pid = f"tg{u.get('id')}"
             return web.json_response({
                 "ok": True,
                 "source": "telegram",
-                "id": f"tg{u.get('id')}",
+                "id": pid,
                 "name": _full_name(u),
                 "username": str(u.get("username") or "") or None,
                 "photo": str(u.get("photo_url") or ""),
+                "balance": manager.balance_of(pid),
             })
         else:
             logger.info("me: init_data present but invalid (source guest)")
@@ -102,11 +108,16 @@ async def create_room_handler(request):
         deck_size = 36
     if deck_size not in (24, 36, 52):
         deck_size = 36
+    try:
+        stake = int(data.get("stake") or data.get("settings", {}).get("stake") or 0)
+    except (TypeError, ValueError):
+        stake = 0
     settings = {
         "max_players": max_players,
         "mode": mode,
         "throw_all": bool(data.get("throw_all")),
         "deck_size": deck_size,
+        "stake": max(0, stake),
     }
     room = manager.create(player, name, private, password, settings)
     return web.json_response({
@@ -116,6 +127,7 @@ async def create_room_handler(request):
         "token": list(room.tokens.keys())[-1],
         "room": room.summary(),
         "player": player,
+        "balance": player["balance"],
     })
 
 
@@ -143,6 +155,7 @@ async def join_room_handler(request):
         "token": token,
         "room": room.summary(),
         "player": player,
+        "balance": player["balance"],
     })
 
 

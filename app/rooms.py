@@ -15,6 +15,7 @@ class Room:
         self.mode = settings.get("mode", "podkidnoi")
         self.throw_all = bool(settings.get("throw_all", False))
         self.deck_size = int(settings.get("deck_size") or 36)
+        self.stake = int(settings.get("stake") or 0)
         self.created = time.time()
         self.players: Dict[str, dict] = {host["id"]: host}
         self.tokens: Dict[str, str] = {}
@@ -35,6 +36,7 @@ class Room:
             "throw_all": self.throw_all,
             "deck_size": self.deck_size,
             "status": self.status,
+            "stake": self.stake,
             "created": self.created,
         }
 
@@ -42,6 +44,18 @@ class Room:
 class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
+        self.wallets: Dict[str, int] = {}
+
+    START_BALANCE = 10000
+
+    def balance_of(self, pid: str) -> int:
+        return self.wallets.get(pid, self.START_BALANCE)
+
+    def transfer(self, loser: str, winner: str, stake: int) -> None:
+        if stake <= 0:
+            return
+        self.wallets[loser] = max(0, self.balance_of(loser) - stake)
+        self.wallets[winner] = self.balance_of(winner) + stake
 
     def _room_id(self) -> str:
         while True:

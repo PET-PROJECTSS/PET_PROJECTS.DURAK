@@ -53,6 +53,11 @@ body {
 #screen-game {
   height: 100dvh;
   overflow: hidden;
+  background: #6e96b1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.7px, transparent 0.8px),
+    radial-gradient(rgba(0, 35, 60, 0.08) 0.7px, transparent 0.8px),
+    linear-gradient(145deg, #7199b5, #668ea9 55%, #769cb6);
+  background-size: 4px 4px, 5px 5px, 100% 100%;
 }
 
 .hidden {
@@ -2347,7 +2352,12 @@ body.app-tab .bottom-nav {
 /* ===================== WAITING ROOM (pre-game) ===================== */
 .wroom {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  width: 576px;
+  height: 1280px;
+  transform-origin: 50% 50%;
+  transform: translate(-50%, -50%);
   overflow: hidden;
   color: #fff;
   background: #6e96b1;
@@ -2355,12 +2365,39 @@ body.app-tab .bottom-nav {
     radial-gradient(rgba(0, 35, 60, 0.08) 0.7px, transparent 0.8px),
     linear-gradient(145deg, #7199b5, #668ea9 55%, #769cb6);
   background-size: 4px 4px, 5px 5px, 100% 100%;
-  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .wroom .top-white {
   height: 50px;
   background: #fff;
+}
+
+.wroom .scene-leave {
+  position: absolute;
+  top: 60px;
+  left: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #eaf3f8;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 9;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wroom .scene-leave svg {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.wroom .scene-leave:active {
+  transform: scale(0.92);
 }
 
 .wroom .money {
@@ -3533,7 +3570,7 @@ body.app-tab .bottom-nav {
   z-index: 7;
   left: 0;
   right: 0;
-  bottom: 56px;
+  bottom: 0;
   height: 140px;
   padding: 14px 7px 8px;
   display: flex;
@@ -3729,51 +3766,6 @@ body.app-tab .bottom-nav {
 .game-scene .coin-square {
   color: #b5cc4c;
   font-size: 13px;
-}
-
-.game-scene .navbar {
-  position: absolute;
-  z-index: 8;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 56px;
-  background: #fafbfc;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid #d9d9d9;
-}
-
-.game-scene .nav-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-family: inherit;
-  color: #1e1e1e;
-  font-size: 10px;
-  padding: 0;
-}
-
-.game-scene .nav-tab .nav-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-
-.game-scene .nav-tab.pink {
-  color: #e68a97;
-}
-
-.game-scene .nav-tab.gray {
-  color: #b9b9b9;
-}
-
-.game-scene .nav-tab:active {
-  transform: scale(0.92);
 }
 
 .game-scene .emoji-palette {

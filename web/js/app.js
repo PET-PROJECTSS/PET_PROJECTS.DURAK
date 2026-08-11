@@ -18,6 +18,7 @@ window.App = window.App || {};
     App.api
       .me()
       .then((data) => {
+        if (data.balance != null) App.balance = data.balance;
         if (data.source === "telegram") {
           me = { source: "telegram", id: data.id, name: data.name, photo: data.photo };
         }
@@ -39,10 +40,7 @@ window.App = window.App || {};
   const back = document.getElementById("game-leave");
   if (back) {
     back.addEventListener("click", () => {
-      if (App.game && App.game.state && !App.game.state.finished) {
-        if (!confirm("Покинуть игру?")) return;
-      }
-      App.leaveGame();
+      if (App.requestLeave) App.requestLeave();
     });
   }
 

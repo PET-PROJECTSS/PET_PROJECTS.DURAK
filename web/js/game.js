@@ -30,6 +30,7 @@ window.App = window.App || {};
   }
 
   App.joinGame = function (data) {
+    if (data.balance != null) App.balance = data.balance;
     App.game = {
       roomId: data.room_id,
       token: data.token,
@@ -44,6 +45,7 @@ window.App = window.App || {};
       roomName: data.room ? data.room.name : "Игра",
     };
     window.addEventListener("resize", fitScene);
+    document.body.classList.remove("app-tab");
     App.showScreen("screen-game");
     connect();
   };
@@ -77,7 +79,11 @@ window.App = window.App || {};
       }
     };
     ws.onclose = () => {
-      if (App.game) renderDisconnected();
+      if (!App.game) return;
+      if (App.game._leaving) return;
+      const st = App.game.state;
+      if (st && st.finished) return;
+      renderDisconnected();
     };
     ws.onerror = () => {};
   }
@@ -123,31 +129,22 @@ window.App = window.App || {};
     if (p) App.game._fly = { card, x: p.x, y: p.y };
   }
 
-  function initNavbar() {
-    const scene = sceneEl("game-scene");
-    if (!scene || scene.dataset.nav) return;
-    scene.dataset.nav = "1";
-    scene.querySelectorAll(".nav-tab").forEach((b) => {
-      b.addEventListener("click", () => {
-        if (App.game && App.game.state && !App.game.state.finished) {
-          if (!confirm("Покинуть игру?")) return;
-        }
-        App.leaveGame();
-        App.setTab(b.dataset.tab);
-      });
-    });
-  }
-
   function fitScene() {
-    const wrap = document.querySelector("#screen-game .game-wrap");
-    const scene = sceneEl("game-scene");
-    if (!wrap || !scene) return;
-    const w = wrap.clientWidth || 0;
-    const h = wrap.clientHeight || 0;
+    const screen = sceneEl("screen-game");
+    if (!screen) return;
+    const w = screen.clientWidth || 0;
+    const h = screen.clientHeight || 0;
     if (!w || !h) return;
     const s = Math.min(w / 576, h / 1280);
-    scene.style.transform = `translate(-50%, -50%) scale(${s})`;
-    scene._scale = s;
+    const scene = sceneEl("game-scene");
+    if (scene) {
+      scene.style.transform = `translate(-50%, -50%) scale(${s})`;
+      scene._scale = s;
+    }
+    const wait = sceneEl("waiting-screen");
+    if (wait) {
+      wait.style.transform = `translate(-50%, -50%) scale(${s})`;
+    }
   }
 
   function render() {
@@ -156,6 +153,8 @@ window.App = window.App || {};
     const g = App.game;
     showGameUi();
     fitScene();
+
+    if (s.balance != null) App.balance = s.balance;
 
     if (g.prevTurn !== s.turn) {
       g.selected = null;
@@ -185,7 +184,6 @@ window.App = window.App || {};
     renderHand(s);
     renderTurn(s);
     initEmojiControls();
-    initNavbar();
     if (g.deal) startDeal();
   }
 
@@ -681,6 +679,7 @@ window.App = window.App || {};
 
   function renderWaiting(d) {
     App.game.state = null;
+    if (d.balance != null) App.balance = d.balance;
     const room = d.room || {};
     const players = d.players || [];
     const ready = d.ready || [];
@@ -736,6 +735,9 @@ window.App = window.App || {};
     const waitEl = sceneEl("waiting-screen");
     waitEl.innerHTML = `
       <div class="top-white"></div>
+      <button class="scene-btn scene-leave" id="wait-leave" title="Выход">
+        <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 5 8.5 13l7 8"/></svg>
+      </button>
       <div class="money">${balance} <span class="bill">▰</span></div>
       <div class="top-icons"><i class="ti round"></i><i class="ti x"></i><i class="ti"></i><i class="ti round"></i></div>
       <section class="players${many ? " many" : ""}${slots === 1 ? " single" : ""}">${playerCards}</section>
@@ -773,6 +775,11 @@ window.App = window.App || {};
         }
       });
     }
+
+    const leaveBtn = sceneEl("wait-leave");
+    if (leaveBtn) leaveBtn.addEventListener("click", App.requestLeave);
+
+    fitScene();
   }
 
   /* ---------- переключение экранов ---------- */
@@ -810,6 +817,25 @@ window.App = window.App || {};
     App.showScreen("screen-lobby");
     App.setTab("open");
   }
+
+  App.requestLeave = function () {
+    const g = App.game;
+    const active = !!(g && g.state && !g.state.finished);
+    const title = active ? "Вы точно хотите выйти из игры?" : "Выйти из комнаты ожидания?";
+    const text = active
+      ? "При выходе из активной игры вам засчитается поражение и спишется ставка."
+      : "Вы вернётесь в лобби.";
+    App.confirm(title, text, (ok) => {
+      if (!ok) return;
+      if (g) {
+        g._leaving = true;
+        if (active && g.state.stake > 0) {
+          App.toast("Поражение, минус " + g.state.stake, "error");
+        }
+      }
+      App.leaveGame();
+    });
+  };
 
   App.leaveGame = leaveGame;
 })();
