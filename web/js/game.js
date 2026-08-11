@@ -167,7 +167,7 @@ window.App = window.App || {};
     if (g.target && !s.table.some((p) => p[0] === g.target && p[1] === null)) g.target = null;
     g.prevTurn = s.turn;
 
-    sceneEl("game-balance").textContent = App.balance != null ? App.balance : "";
+    sceneEl("game-balance").innerHTML = (App.balance != null ? App.balance : "") + ' <span class="coin-game">🪙</span>';
     sceneEl("deck-count").textContent = s.deck > 0 ? s.deck : "";
 
     const trumpEl = sceneEl("trump-card");
@@ -546,14 +546,10 @@ window.App = window.App || {};
       if (!s.table.length && s.can_attack && sel) html.push(`<button class="big-btn" id="act-attack">Ваш ход</button>`);
       if (!html.length) html.push(`<div class="turn-text">${turnStatus(s)}</div>`);
     } else if (s.can_defend) {
-      const valid = sel && App.game.target && beats(sel, App.game.target, s.trump_suit);
-      if (valid) html.push(`<button class="big-btn" id="act-beat">Побить</button>`);
       html.push(`<button class="big-btn" id="act-take">Взять</button>`);
       if (s.mode === "perevodnoi" && s.can_transfer && sel && s.table.length && rankOf(sel) === rankOf(s.table[0][0])) {
         html.push(`<button class="big-btn ghost" id="act-transfer">Перевести</button>`);
       }
-    } else {
-      html.push(`<div class="turn-text">${turnStatus(s)}</div>`);
     }
 
     zone.innerHTML = html.join("");
@@ -573,13 +569,6 @@ window.App = window.App || {};
       if (App.game.selected) {
         flyFromHand(App.game.selected);
         send({ type: "attack", card: App.game.selected });
-        clearSel();
-      }
-    });
-    bind("act-beat", () => {
-      if (App.game.selected && App.game.target) {
-        flyFromHand(App.game.selected);
-        send({ type: "beat", attack: App.game.target, defend: App.game.selected });
         clearSel();
       }
     });

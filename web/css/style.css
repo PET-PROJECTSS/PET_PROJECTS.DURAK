@@ -2970,6 +2970,11 @@ body.app-tab .bottom-nav {
   overflow: hidden;
 }
 
+.game-scene .money .coin-game {
+  font-size: 26px;
+  line-height: 1;
+}
+
 .game-scene .bill {
   display: inline-block;
   width: 27px;
@@ -3181,15 +3186,15 @@ body.app-tab .bottom-nav {
   position: absolute;
   z-index: 3;
   bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(70, 70, 70, 0.92);
+  left: 0;
+  right: 0;
+  text-align: center;
   color: #fff;
-  font-size: 14px;
-  padding: 1px 6px;
-  border-radius: 3px;
+  font-size: 16px;
+  text-shadow: 0 1px 2px #333;
   white-space: nowrap;
   max-width: 96%;
+  margin: 0 auto;
   overflow: hidden;
 }
 
@@ -3434,7 +3439,7 @@ body.app-tab .bottom-nav {
   position: absolute;
   left: 0;
   right: 0;
-  top: 860px;
+  top: 912px;
   height: 330px;
   z-index: 4;
   background: transparent;
@@ -3567,16 +3572,16 @@ body.app-tab .bottom-nav {
   bottom: 0;
   height: 140px;
   padding: 14px 7px 8px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr;
   align-items: center;
-  gap: 12px;
+  column-gap: 12px;
   background: linear-gradient(#fbfcfd, #e9ebee);
   color: #444;
   border-top: 1px solid #d9d9d9;
 }
 
 .game-scene .turn-zone {
-  flex: 1;
   min-width: 0;
   align-self: stretch;
   display: flex;
@@ -3699,6 +3704,7 @@ body.app-tab .bottom-nav {
   align-items: start;
   padding-bottom: 20px;
   flex: none;
+  justify-self: end;
 }
 
 .game-scene .action {
