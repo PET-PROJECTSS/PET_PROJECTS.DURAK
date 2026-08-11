@@ -43,7 +43,17 @@ window.App = window.App || {};
       <section class="blue-area">
         <div class="play"><span class="triangle">▶</span><div class="label">Быстрая игра</div></div>
         <div class="grid">${menuCells}</div>
-      </section>`;
+      </section>
+      <div id="tg-diag" style="padding:10px;font-size:11px;color:#99a;text-align:center;word-break:break-all;display:none"></div>`;
+    if (App.isTelegram) {
+      const diag = document.getElementById("tg-diag");
+      diag.style.display = "block";
+      diag.textContent = "tg:" + App.isTelegram
+        + " · sdk:" + (App.tg ? 1 : 0)
+        + " · initData:" + App.initData.length
+        + " · hash:" + (window.location.hash || "").length
+        + " · " + (window.location.hash || "").slice(0, 120);
+    }
 
     host.querySelectorAll(".cell").forEach((cell) => {
       cell.addEventListener("click", () => {
