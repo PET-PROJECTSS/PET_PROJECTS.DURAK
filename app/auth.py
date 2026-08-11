@@ -3,15 +3,24 @@ import hmac
 import json
 import time
 from typing import Optional
-from urllib.parse import parse_qsl
+from urllib.parse import unquote_plus
+
+
+def _raw_params(init_data: str):
+    params = {}
+    for pair in init_data.split("&"):
+        if not pair:
+            continue
+        if "=" in pair:
+            key, value = pair.split("=", 1)
+            params[key] = value
+    return params
 
 
 def validate_init_data(init_data: str, bot_token: str) -> Optional[dict]:
     if not init_data:
         return None
-    params = {}
-    for key, value in parse_qsl(init_data, keep_blank_values=True):
-        params[key] = value
+    params = _raw_params(init_data)
     received_hash = params.pop("hash", None)
     if not received_hash:
         return None
@@ -29,7 +38,7 @@ def validate_init_data(init_data: str, bot_token: str) -> Optional[dict]:
     user = {}
     if "user" in params:
         try:
-            user = json.loads(params["user"])
+            user = json.loads(unquote_plus(params["user"]))
         except json.JSONDecodeError:
             user = {}
     return {"user": user, "auth_date": params.get("auth_date")}
