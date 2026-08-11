@@ -24,6 +24,7 @@
   --radius: 14px;
   --shadow: 0 8px 22px rgba(30, 45, 65, 0.22);
   --shadow-sm: 0 3px 10px rgba(30, 45, 65, 0.16);
+  --s: 1;
 }
 
 html,
@@ -145,12 +146,12 @@ body {
   cursor: pointer;
   font-family: inherit;
   color: #1e1e1e;
-  font-size: 14px;
+  font-size: calc(var(--s) * 14px);
   padding: 0;
 }
 
 .nav-icon {
-  font-size: 30px;
+  font-size: calc(var(--s) * 30px);
   line-height: 1;
 }
 
@@ -271,51 +272,51 @@ body {
 .top {
   background: #f2f2f2;
   border-bottom: 1px solid #cfcfcf;
-  padding: 10px 12px 0;
+  padding: calc(var(--s) * 10px) calc(var(--s) * 12px) 0;
   flex: 0 0 auto;
 }
 
 .top .name {
   text-align: center;
   color: #7d7d7d;
-  font-size: 20px;
+  font-size: calc(var(--s) * 20px);
   font-weight: 300;
-  margin: 8px 0 6px;
+  margin: calc(var(--s) * 8px) 0 calc(var(--s) * 6px);
 }
 
 .profile-row {
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  padding-bottom: 8px;
+  padding-bottom: calc(var(--s) * 8px);
 }
 
 .avatar-wrap {
-  width: 140px;
+  width: calc(var(--s) * 140px);
   position: relative;
-  height: 92px;
+  height: calc(var(--s) * 92px);
 }
 
 .person-icon {
-  width: 108px;
-  height: 88px;
+  width: calc(var(--s) * 108px);
+  height: calc(var(--s) * 88px);
   display: block;
   margin: 0 auto;
 }
 
 .small-stat {
   position: absolute;
-  left: 90px;
+  left: calc(var(--s) * 90px);
   top: 2px;
   color: #7a7a7a;
-  font-size: 15px;
+  font-size: calc(var(--s) * 15px);
   line-height: 1;
   white-space: nowrap;
 }
 
 .small-stat .grade {
   display: block;
-  font-size: 12px;
+  font-size: calc(var(--s) * 12px);
   line-height: 1;
   margin-top: 2px;
 }
@@ -324,7 +325,7 @@ body {
   flex: 1;
   padding-top: 0;
   color: #d11414;
-  font-size: 26px;
+  font-size: calc(var(--s) * 26px);
   line-height: 1;
   text-align: right;
   font-weight: 500;
@@ -335,12 +336,12 @@ body {
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: calc(var(--s) * 6px);
 }
 
 .btn-plus {
-  width: 38px;
-  height: 38px;
+  width: calc(var(--s) * 38px);
+  height: calc(var(--s) * 38px);
   border: 1px solid #d9b3b3;
   border-radius: 4px;
   color: #ce5353;
@@ -348,7 +349,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: calc(var(--s) * 26px);
   font-weight: 300;
   font-family: inherit;
   cursor: pointer;
@@ -357,35 +358,35 @@ body {
 
 .coin,
 .cash {
-  width: 32px;
-  height: 32px;
+  width: calc(var(--s) * 32px);
+  height: calc(var(--s) * 32px);
   object-fit: contain;
 }
 
 .blue-area {
   background: linear-gradient(#6488ac, #5b7ea0);
   color: #f8f8f8;
-  padding-top: 6px;
+  padding-top: calc(var(--s) * 6px);
   border-top: 1px solid #7d9ab7;
   flex: 1;
 }
 
 .blue-area .play {
   text-align: center;
-  padding: 4px 0 6px;
+  padding: calc(var(--s) * 4px) 0 calc(var(--s) * 6px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   cursor: pointer;
 }
 
 .blue-area .play .triangle {
-  font-size: 24px;
+  font-size: calc(var(--s) * 24px);
   line-height: 1;
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: calc(var(--s) * 3px);
 }
 
 .blue-area .play .label {
-  font: italic 700 18px Georgia, "Times New Roman", serif;
+  font: italic 700 calc(var(--s) * 18px) Georgia, "Times New Roman", serif;
 }
 
 .grid {
@@ -394,7 +395,7 @@ body {
 }
 
 .cell {
-  min-height: 58px;
+  min-height: calc(var(--s) * 58px);
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   display: flex;
@@ -403,7 +404,7 @@ body {
   justify-content: center;
   position: relative;
   text-align: center;
-  padding: 6px 8px;
+  padding: calc(var(--s) * 6px) calc(var(--s) * 8px);
   cursor: pointer;
 }
 
@@ -412,31 +413,31 @@ body {
 }
 
 .cell .icon {
-  font-size: 21px;
+  font-size: calc(var(--s) * 21px);
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: calc(var(--s) * 4px);
   opacity: 0.96;
 }
 
 .cell .text {
-  font: italic 700 15px Georgia, "Times New Roman", serif;
+  font: italic 700 calc(var(--s) * 15px) Georgia, "Times New Roman", serif;
   line-height: 1.05;
 }
 
 .cell .num {
   font-style: normal;
   font-weight: 400;
-  font-size: 17px;
-  margin-left: 3px;
+  font-size: calc(var(--s) * 17px);
+  margin-left: calc(var(--s) * 3px);
 }
 
 .tournament-icon {
-  width: 30px;
-  height: 22px;
+  width: calc(var(--s) * 30px);
+  height: calc(var(--s) * 22px);
   border: 3px solid #fff;
   border-radius: 2px;
   position: relative;
-  margin-bottom: 5px;
+  margin-bottom: calc(var(--s) * 5px);
 }
 
 .tournament-icon:before {
@@ -458,33 +459,33 @@ body {
 }
 
 .friends-icon {
-  width: 44px;
-  height: 30px;
+  width: calc(var(--s) * 44px);
+  height: calc(var(--s) * 30px);
   position: relative;
-  margin-bottom: 4px;
+  margin-bottom: calc(var(--s) * 4px);
 }
 
 .friends-icon .head {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: calc(var(--s) * 14px);
+  height: calc(var(--s) * 14px);
   border-radius: 50%;
   background: #fff;
   top: 0;
 }
 
 .friends-icon .head.one {
-  left: 5px;
+  left: calc(var(--s) * 5px);
 }
 
 .friends-icon .head.two {
-  right: 5px;
+  right: calc(var(--s) * 5px);
 }
 
 .friends-icon .body {
   position: absolute;
-  width: 24px;
-  height: 16px;
+  width: calc(var(--s) * 24px);
+  height: calc(var(--s) * 16px);
   border-radius: 14px 14px 5px 5px;
   background: #fff;
   bottom: 0;
@@ -500,17 +501,60 @@ body {
 
 .new-badge {
   position: absolute;
-  right: 6px;
-  top: 6px;
+  right: calc(var(--s) * 6px);
+  top: calc(var(--s) * 6px);
   background: #ff4f5d;
   color: #fff;
-  padding: 3px 9px 4px;
+  padding: calc(var(--s) * 3px) calc(var(--s) * 9px) calc(var(--s) * 4px);
   border-radius: 20px 20px 20px 0;
   transform: rotate(-10deg);
   font-weight: 700;
-  font-size: 11px;
+  font-size: calc(var(--s) * 11px);
   border: 1px solid #ffd1d4;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.tg-avatar {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.tg-avatar svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tg-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.tg-avatar img.loaded {
+  opacity: 1;
+}
+
+.tg-avatar-slot {
+  position: relative;
+  display: block;
+  width: calc(var(--s) * 108px);
+  height: calc(var(--s) * 88px);
+  margin: 0 auto;
+}
+
+.tg-avatar-slot .tg-avatar {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(var(--s) * 88px) !important;
+  height: calc(var(--s) * 88px) !important;
 }
 
 /* --- Rooms tab (reference design) --- */
@@ -519,7 +563,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 10px 0 6px;
+  padding: calc(var(--s) * 10px) 0 calc(var(--s) * 6px);
 }
 
 .title-row .name {
@@ -528,10 +572,10 @@ body {
 
 .diamond {
   position: absolute;
-  right: 14px;
-  top: 8px;
-  width: 26px;
-  height: 26px;
+  right: calc(var(--s) * 14px);
+  top: calc(var(--s) * 8px);
+  width: calc(var(--s) * 26px);
+  height: calc(var(--s) * 26px);
   transform: rotate(45deg);
   background: linear-gradient(135deg, #8b2ea8, #d59be0);
   box-shadow: 0 0 0 1px #b77ac8 inset;
@@ -547,13 +591,13 @@ body {
 }
 
 .blue-area .filters-title {
-  font: italic 700 20px Georgia, "Times New Roman", serif;
+  font: italic 700 calc(var(--s) * 20px) Georgia, "Times New Roman", serif;
   text-align: center;
-  padding: 4px 0 0;
+  padding: calc(var(--s) * 4px) 0 0;
 }
 
 .filters {
-  padding: 6px 14px 8px;
+  padding: calc(var(--s) * 6px) calc(var(--s) * 14px) calc(var(--s) * 8px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
 }
 
@@ -660,8 +704,8 @@ body {
 
 .rooms-list .row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-  padding: 9px 12px 8px;
-  min-height: 68px;
+  padding: calc(var(--s) * 9px) calc(var(--s) * 12px) calc(var(--s) * 8px);
+  min-height: calc(var(--s) * 68px);
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -679,9 +723,9 @@ body {
 
 .row .left .name2 {
   text-align: center;
-  font-size: 20px;
+  font-size: calc(var(--s) * 20px);
   line-height: 1.05;
-  margin-bottom: 4px;
+  margin-bottom: calc(var(--s) * 4px);
 }
 
 .row .left .meta {
@@ -689,20 +733,20 @@ body {
   align-items: center;
   gap: 10px;
   justify-content: flex-start;
-  font-size: 22px;
+  font-size: calc(var(--s) * 22px);
   line-height: 1;
 }
 
 .row .left .meta .people {
-  font-size: 16px;
+  font-size: calc(var(--s) * 16px);
   opacity: 0.8;
 }
 
 .name2 .lockmini {
-  width: 16px;
-  height: 16px;
+  width: calc(var(--s) * 16px);
+  height: calc(var(--s) * 16px);
   vertical-align: baseline;
-  margin-left: 4px;
+  margin-left: calc(var(--s) * 4px);
 }
 
 .flag {
@@ -756,7 +800,7 @@ body {
 
 .row .go {
   margin-left: 10px;
-  font-size: 28px;
+  font-size: calc(var(--s) * 28px);
   color: #fff;
   opacity: 0.95;
 }
@@ -1070,7 +1114,7 @@ body.app-tab .bottom-nav {
 
 .create-header {
   position: relative;
-  height: 84px;
+  height: calc(var(--s) * 84px);
   flex: none;
   background: linear-gradient(#7292ad, #5b7d9e);
   display: flex;
@@ -1079,17 +1123,17 @@ body.app-tab .bottom-nav {
 }
 
 .create-header .title {
-  font: bold 26px Georgia;
+  font: bold calc(var(--s) * 26px) Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .create-header .gem {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
+  top: calc(var(--s) * 10px);
+  right: calc(var(--s) * 12px);
+  width: calc(var(--s) * 36px);
+  height: calc(var(--s) * 36px);
   background: #0dbeef;
   transform: rotate(45deg);
   box-shadow: 0 0 0 3px #15e67e inset;
@@ -1097,24 +1141,24 @@ body.app-tab .bottom-nav {
 
 .create-header .gem:after {
   content: "✦";
-  font-size: 20px;
+  font-size: calc(var(--s) * 20px);
   color: #fff;
   display: block;
   transform: rotate(-45deg);
   text-align: center;
-  line-height: 36px;
+  line-height: calc(var(--s) * 36px);
 }
 
 .create-content {
   flex: 1;
   min-height: 0;
   background: linear-gradient(135deg, #6489aa, #5b7d9e);
-  padding: 12px 18px 8px;
+  padding: calc(var(--s) * 12px) calc(var(--s) * 18px) calc(var(--s) * 8px);
   overflow-y: auto;
 }
 
 .create-page .script {
-  font: italic bold 20px Georgia;
+  font: italic bold calc(var(--s) * 20px) Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -1126,24 +1170,24 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .bet .label {
-  font: italic bold 17px Georgia;
+  font: italic bold calc(var(--s) * 17px) Georgia;
 }
 
 .create-page .bet .amount span {
-  font: bold 24px Georgia;
+  font: bold calc(var(--s) * 24px) Georgia;
   color: #fff;
 }
 
 .create-page .bet .amount .cash {
-  margin-left: 5px;
-  font-size: 22px;
+  margin-left: calc(var(--s) * 5px);
+  font-size: calc(var(--s) * 22px);
   line-height: 1;
 }
 
 .create-page .slider {
-  margin-top: 8px;
-  margin-bottom: 4px;
-  height: 28px;
+  margin-top: calc(var(--s) * 8px);
+  margin-bottom: calc(var(--s) * 4px);
+  height: calc(var(--s) * 28px);
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1153,10 +1197,10 @@ body.app-tab .bottom-nav {
 
 .create-page .slider .track {
   position: absolute;
-  top: 12px;
+  top: calc(var(--s) * 12px);
   left: 8px;
   right: 8px;
-  height: 6px;
+  height: calc(var(--s) * 6px);
   border-radius: 3px;
   background: linear-gradient(135deg, #24a838, #46d056);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
@@ -1166,8 +1210,8 @@ body.app-tab .bottom-nav {
   position: absolute;
   top: 1px;
   left: 0;
-  width: 28px;
-  height: 28px;
+  width: calc(var(--s) * 28px);
+  height: calc(var(--s) * 28px);
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -1178,20 +1222,20 @@ body.app-tab .bottom-nav {
 .create-page .scale {
   display: flex;
   justify-content: space-between;
-  font: bold 10px Georgia;
+  font: bold calc(var(--s) * 10px) Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  margin-bottom: 12px;
+  margin-bottom: calc(var(--s) * 12px);
 }
 
 .create-page .heading {
-  font: italic bold 19px Georgia;
-  margin: 0 0 4px;
+  font: italic bold calc(var(--s) * 19px) Georgia;
+  margin: 0 0 calc(var(--s) * 4px);
 }
 
 .create-page .pill {
   display: flex;
-  height: 32px;
+  height: calc(var(--s) * 32px);
   border-radius: 30px;
   overflow: hidden;
   background: rgba(40, 100, 139, 0.36);
@@ -1205,7 +1249,7 @@ body.app-tab .bottom-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  font: bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font: bold calc(var(--s) * 18px) -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   color: #fff;
   cursor: pointer;
   user-select: none;
@@ -1232,7 +1276,7 @@ body.app-tab .bottom-nav {
 
 .create-page .settings-pill {
   display: flex;
-  height: 32px;
+  height: calc(var(--s) * 32px);
   border-radius: 30px;
   overflow: hidden;
   background: rgba(40, 100, 139, 0.36);
@@ -1270,8 +1314,8 @@ body.app-tab .bottom-nav {
   display: grid;
   grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: 12px;
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin-top: calc(var(--s) * 12px);
+  margin-bottom: calc(var(--s) * 4px);
 }
 
 .create-page .subheads span:last-child {
@@ -1282,11 +1326,11 @@ body.app-tab .bottom-nav {
   display: grid;
   grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: calc(var(--s) * 12px);
 }
 
 .create-page .game-heading {
-  margin: 0 0 6px;
+  margin: 0 0 calc(var(--s) * 6px);
 }
 
 .create-page .modes {
@@ -1298,7 +1342,7 @@ body.app-tab .bottom-nav {
   position: relative;
   width: 25%;
   box-sizing: border-box;
-  padding: 5px;
+  padding: calc(var(--s) * 5px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1312,16 +1356,16 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .mode .ico {
-  width: 38px;
-  height: 38px;
+  width: calc(var(--s) * 38px);
+  height: calc(var(--s) * 38px);
   object-fit: contain;
-  margin-bottom: 2px;
+  margin-bottom: calc(var(--s) * 2px);
   filter: brightness(0) invert(1) opacity(0.72);
 }
 
 .create-page .mode small {
-  font-size: 12px;
-  line-height: 14px;
+  font-size: calc(var(--s) * 12px);
+  line-height: calc(var(--s) * 14px);
 }
 
 .create-page .mode .mode-check {
@@ -1351,7 +1395,7 @@ body.app-tab .bottom-nav {
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, #6489aa, #5b7d9e);
-  padding: 8px 18px calc(10px + env(safe-area-inset-bottom));
+  padding: calc(var(--s) * 8px) calc(var(--s) * 18px) calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -1363,21 +1407,21 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .password .box {
-  width: 36px;
-  height: 36px;
+  width: calc(var(--s) * 36px);
+  height: calc(var(--s) * 36px);
   background: #fff;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
   display: grid;
   place-items: center;
-  font-size: 24px;
+  font-size: calc(var(--s) * 24px);
   font-weight: bold;
 }
 
 .create-page .password .box:after {
   content: "";
-  width: 12px;
-  height: 6px;
+  width: calc(var(--s) * 12px);
+  height: calc(var(--s) * 6px);
   border-left: 3px solid transparent;
   border-bottom: 3px solid transparent;
   transform: rotate(-45deg);
@@ -1388,27 +1432,27 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .password .text {
-  font: italic bold 16px Georgia;
-  margin-left: 8px;
+  font: italic bold calc(var(--s) * 16px) Georgia;
+  margin-left: calc(var(--s) * 8px);
 }
 
 .create-page .create {
   flex: 1;
-  margin-left: 16px;
-  height: 44px;
+  margin-left: calc(var(--s) * 16px);
+  height: calc(var(--s) * 44px);
   background: linear-gradient(180deg, #f88a1d, #e26618);
   border-radius: 10px;
   text-align: center;
-  font: italic bold 21px Georgia;
+  font: italic bold calc(var(--s) * 21px) Georgia;
   color: #fff;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
   cursor: pointer;
   user-select: none;
-  line-height: 44px;
+  line-height: calc(var(--s) * 44px);
 }
 
 .create-page .create b {
-  font-size: 19px;
+  font-size: calc(var(--s) * 19px);
 }
 
 /* --- Empty / loader --- */

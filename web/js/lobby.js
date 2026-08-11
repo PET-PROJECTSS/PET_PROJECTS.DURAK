@@ -14,9 +14,7 @@ window.App = window.App || {};
         <path d="M50 76c8 8 18 12 30 12s22-4 30-12" fill="none" stroke="#aaa" stroke-width="5" opacity=".45"/>
       </svg>`;
     const avatarInner = me.source === "telegram"
-      ? (me.photo
-          ? `<img class="person-icon" src="${esc(me.photo)}" alt="" style="border-radius:8px;object-fit:cover" onerror="this.outerHTML=App.telegramIconHtml(148)">`
-          : App.telegramIconHtml(148))
+      ? `<span class="person-icon tg-avatar-slot">${App.tgAvatarHtml(me.photo, 88)}</span>`
       : personIcon;
     const menuCells = `
       <div class="cell"><div class="tournament-icon"></div><div class="text">Турниры</div></div>

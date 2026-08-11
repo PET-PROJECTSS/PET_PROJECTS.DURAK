@@ -20,19 +20,30 @@ window.App = window.App || {};
     return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-label="Telegram"><defs><linearGradient id="tg-grad-${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#37BBED"/><stop offset="1" stop-color="#1E96C8"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#tg-grad-${s})"/><path fill="#fff" d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.529 1.462l4.552 1.42 10.532-6.645c.499-.303.953-.14.579.192l-8.533 7.701-.321 4.705c.253 0 .362-.117.503-.248l2.247-2.161 4.652 3.435c.857.47 1.463.228 1.678-.787l3.04-14.292c.312-1.237-.54-1.745-1.092-1.578z"/></svg>`;
   };
 
+  App.tgAvatarHtml = function (photo, size) {
+    const s = size || 64;
+    return `<span class="tg-avatar" style="width:${s}px;height:${s}px">${App.telegramIconHtml(s)}${photo ? `<img src="${App.esc(photo)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</span>`;
+  };
+
   App.avatarHtml = function (name, photo, size, source) {
     const s = size || 64;
     const initial = App.esc((name || "?").trim().charAt(0).toUpperCase() || "?");
     const isTg = source === "telegram";
+    if (isTg) return App.tgAvatarHtml(photo, s);
     if (photo) {
-      const fallback = isTg
-        ? `this.outerHTML=App.telegramIconHtml(${s})`
-        : `this.outerHTML='<div class="avatar avatar-init" style="width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px">${initial}</div>'`;
-      return `<img class="avatar" src="${App.esc(photo)}" alt="" style="width:${s}px;height:${s}px;object-fit:cover" onerror="${fallback}">`;
+      return `<img class="avatar" src="${App.esc(photo)}" alt="" style="width:${s}px;height:${s}px;object-fit:cover;border-radius:50%" onerror="this.outerHTML='<div class=\'avatar avatar-init\' style=\'width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px\'>${initial}</div>'">`;
     }
-    if (isTg) return App.telegramIconHtml(s);
     return `<div class="avatar avatar-init" style="width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px">${initial}</div>`;
   };
+
+  function applyScale() {
+    const vh = window.innerHeight || 680;
+    const s = Math.max(0.68, Math.min(1, vh / 680));
+    document.documentElement.style.setProperty("--s", s.toFixed(3));
+  }
+  applyScale();
+  window.addEventListener("resize", applyScale);
+  window.addEventListener("orientationchange", applyScale);
 
   const TILE_COLORS = ["#8b5fbf", "#5a3d2b", "#2f7a4f", "#2f5f8f", "#a3492f", "#6b6b2f"];
   App.seatAvatarHtml = function (name, photo) {
