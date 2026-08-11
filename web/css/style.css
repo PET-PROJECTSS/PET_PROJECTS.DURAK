@@ -559,14 +559,13 @@ body {
   width: calc(var(--s) * 108px);
   height: calc(var(--s) * 88px);
   margin: 0 auto;
-  background: linear-gradient(135deg, #cfa062, #8a5a2f);
+  background: transparent;
   border-radius: calc(var(--s) * 11px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 calc(var(--s) * 2px) rgba(255, 255, 255, 0.18);
 }
 
 .tg-avatar-slot .tg-avatar {
   position: absolute;
-  inset: calc(var(--s) * 5px);
+  inset: 0;
 }
 
 /* --- Rooms tab (reference design) --- */
@@ -2957,15 +2956,10 @@ body.app-tab .bottom-nav {
   -webkit-user-select: none;
 }
 
-.game-scene .top-white {
-  height: 40px;
-  background: #f4f6f8;
-}
-
 .game-scene .money {
   position: absolute;
   right: 8px;
-  top: 44px;
+  top: 8px;
   font-size: 39px;
   line-height: 1;
   font-weight: 300;
@@ -2993,7 +2987,7 @@ body.app-tab .bottom-nav {
 
 .game-scene .top-icons {
   position: absolute;
-  top: 62px;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -3016,7 +3010,7 @@ body.app-tab .bottom-nav {
 
 .game-scene .scene-btn {
   position: absolute;
-  top: 46px;
+  top: 10px;
   width: 48px;
   height: 48px;
   border-radius: 14px;

@@ -104,10 +104,11 @@ window.App = window.App || {};
     if (!r.width) return null;
     const scene = sceneEl("game-scene");
     const sr = scene.getBoundingClientRect();
-    const scale = scene._scale || 1;
+    const sx = scene._scaleX || 1;
+    const sy = scene._scaleY || 1;
     return {
-      x: (r.left + r.width / 2 - sr.left) / scale,
-      y: (r.top + r.height / 2 - sr.top) / scale,
+      x: (r.left + r.width / 2 - sr.left) / sx,
+      y: (r.top + r.height / 2 - sr.top) / sy,
     };
   }
 
@@ -135,15 +136,17 @@ window.App = window.App || {};
     const w = screen.clientWidth || 0;
     const h = screen.clientHeight || 0;
     if (!w || !h) return;
-    const s = Math.min(w / 576, h / 1280);
+    const sx = w / 576;
+    const sy = h / 1280;
     const scene = sceneEl("game-scene");
     if (scene) {
-      scene.style.transform = `translate(-50%, -50%) scale(${s})`;
-      scene._scale = s;
+      scene.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+      scene._scaleX = sx;
+      scene._scaleY = sy;
     }
     const wait = sceneEl("waiting-screen");
     if (wait) {
-      wait.style.transform = `translate(-50%, -50%) scale(${s})`;
+      wait.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
     }
   }
 
@@ -433,9 +436,10 @@ window.App = window.App || {};
     }
     const scene = sceneEl("game-scene");
     const srect = scene.getBoundingClientRect();
-    const scale = scene._scale || 1;
-    const x = (e.clientX - srect.left) / scale;
-    const y = (e.clientY - srect.top) / scale;
+    const sx = scene._scaleX || 1;
+    const sy = scene._scaleY || 1;
+    const x = (e.clientX - srect.left) / sx;
+    const y = (e.clientY - srect.top) / sy;
     d.ghost.style.left = x - d.ghost.offsetWidth / 2 + "px";
     d.ghost.style.top = y - d.ghost.offsetHeight / 2 + "px";
     const under = document.elementFromPoint(e.clientX, e.clientY);
@@ -600,22 +604,23 @@ window.App = window.App || {};
     const scene = sceneEl("game-scene");
     if (!scene) return;
     scene.classList.add("dealing");
-    const scale = scene._scale || 1;
+    const sx = scene._scaleX || 1;
+    const sy = scene._scaleY || 1;
     const srect = scene.getBoundingClientRect();
     let dx0 = 30;
     let dy0 = 440;
     const deckEl = document.querySelector(".game-scene .deck");
     if (deckEl && deckEl.getBoundingClientRect().width > 0) {
       const r = deckEl.getBoundingClientRect();
-      dx0 = (r.left + r.width / 2 - srect.left) / scale;
-      dy0 = (r.top + r.height / 2 - srect.top) / scale;
+      dx0 = (r.left + r.width / 2 - srect.left) / sx;
+      dy0 = (r.top + r.height / 2 - srect.top) / sy;
     }
     const cards = Array.prototype.slice.call(scene.querySelectorAll(".hand-card.deal"));
     cards.forEach((el, i) => {
       const r = el.getBoundingClientRect();
       if (!r.width) return;
-      const cx = (r.left + r.width / 2 - srect.left) / scale;
-      const cy = (r.top + r.height / 2 - srect.top) / scale;
+      const cx = (r.left + r.width / 2 - srect.left) / sx;
+      const cy = (r.top + r.height / 2 - srect.top) / sy;
       el.style.setProperty("--dx", dx0 - cx + "px");
       el.style.setProperty("--dy", dy0 - cy + "px");
       el.style.setProperty("--d", i * 60 + "ms");
