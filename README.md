@@ -27,35 +27,31 @@
 - `app/` — auth (проверка initData), комнаты, WebSocket, HTTP API, бот (aiogram)
 - `web/` — фронтенд (без сборки, vanilla JS)
 
-## Продакшен-деплой (Docker + авто-HTTPS)
+## Продакшен-деплой
 
-Образ лёгкий (`python:3.12-slim`, без telethon), наружу торчит только Caddy — он сам получает
-и продлевает Let's Encrypt сертификаты и проксирует WebSocket игры.
+- Репозиторий: `PET-PROJECTSS/PET_PROJECTS.DURAK`. Пуш в `main` деплоит на сервер через GitHub Actions
+  (см. `.github/workflows/deploy.yml`, переиспользует `PET-PROJECTS.ACTIONS/deploy.yml`) и шлёт результат в Telegram.
+- На сервере код лежит в `/opt/projects/durak-online` (git-чекаут), рядом — `.env.prod` (в git не хранится):
+  ```
+  BOT_TOKEN=...
+  USE_PROXY=0
+  GUEST_ALLOWED=1
+  APP_URL=https://64-188-70-11.sslip.io:4433
+  ```
+- Секреты воркфлоу (репо): `SERVER_HOST`, `SERVER_USER`, `SERVER_SSH_KEY`; `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` — на уровне org.
 
-1. На сервере создай папку и положи туда файлы проекта (через git или rsync/scp).
-2. Рядом с `docker-compose.yml` создай два файла:
-   - `.env` — поддомен: `DURAK_DOMAIN=durak.example.com`
-     (укажи DNS-запись `A durak.example.com → <IP сервера>`)
-   - `.env.prod` — токен бота:
-     ```
-     BOT_TOKEN=ваш_токен_из_botfather
-     USE_PROXY=0
-     GUEST_ALLOWED=1
-     ```
-   `APP_URL` соберётся из `DURAK_DOMAIN` автоматически (`https://durak.example.com`).
-3. Запуск:
-   ```
-   docker compose up -d --build
-   docker compose logs -f durak
-   ```
+### HTTPS-схема сервера (порты 80/443 заняты xray-VPN)
+- xray-VPN (VLESS+Reality на 443/8443/2053 и ws80 на 80) **не трогается**.
+- Сайт отдаёт Caddy на **`https://64-188-70-11.sslip.io:4433`** (systemd-сервис `caddy`, конфиг `/etc/caddy/Caddyfile`)
+  и проксирует в контейнер durak (`127.0.0.1:18080`).
+- Домен `*.sslip.io` — бесплатный wildcard-DNS: `64-188-70-11.sslip.io → 64.188.70.11`.
+- Сертификат Let's Encrypt выпущен через HTTP-01 (порт 80 на время выпуска освобождался остановкой xray).
+- Продление — раз в месяц cron `/usr/local/bin/durak-cert-renew.sh`: останавливает xray на ~1 минуту,
+  рестартует Caddy (он сам продлевает по HTTP-01) и возвращает xray.
 
-После первого запроса Caddy выпустит сертификат (обычно за 1–2 минуты). Проверь: `https://durak.example.com/api/rooms`.
-
-> Если на сервере 80/443 уже заняты общим nginx (как у «timeline» и др.) — Caddy не запустится.
-> Тогда используй вариант через общий nginx: см. `deploy/durak.example.conf` (там инструкция + certbot).
-
-`.github/workflows/deploy.example.yml` — автодеплой по push в `main` (GitHub Actions → SSH → docker compose).
-Нужно добавить секреты `SSH_HOST`, `SSH_USER`, `SSH_KEY` и разместить `.env`/`.env.prod` на сервере в `/opt/durak_online`.
+### Один раз в BotFather
+`@BotFather → /setdomain → @durak_onlnee_bot → 64-188-70-11.sslip.io`
+(whitelist домена нужен, чтобы Telegram открывал Mini App кнопку «Играть»).
 
 ## Тесты
 `python -m unittest discover -s tests`
