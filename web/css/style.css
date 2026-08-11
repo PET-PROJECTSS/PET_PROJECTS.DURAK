@@ -131,7 +131,7 @@ body {
   grid-template-columns: repeat(4, 1fr);
   background: #fafafa;
   border-top: 1px solid #cfcfcf;
-  padding: 8px 0 calc(10px + env(safe-area-inset-bottom));
+  padding: 5px 0 calc(7px + env(safe-area-inset-bottom));
   margin-top: auto;
 }
 
@@ -139,18 +139,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   background: none;
   border: none;
   cursor: pointer;
   font-family: inherit;
   color: #1e1e1e;
-  font-size: 18px;
+  font-size: 14px;
   padding: 0;
 }
 
 .nav-icon {
-  font-size: 42px;
+  font-size: 30px;
   line-height: 1;
 }
 
@@ -271,60 +271,60 @@ body {
 .top {
   background: #f2f2f2;
   border-bottom: 1px solid #cfcfcf;
-  padding: 14px 12px 0;
+  padding: 10px 12px 0;
   flex: 0 0 auto;
 }
 
 .top .name {
   text-align: center;
   color: #7d7d7d;
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 300;
-  margin: 16px 0 12px;
+  margin: 8px 0 6px;
 }
 
 .profile-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-start;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 
 .avatar-wrap {
-  width: 182px;
+  width: 140px;
   position: relative;
-  height: 124px;
+  height: 92px;
 }
 
 .person-icon {
-  width: 148px;
-  height: 124px;
+  width: 108px;
+  height: 88px;
   display: block;
   margin: 0 auto;
 }
 
 .small-stat {
   position: absolute;
-  left: 122px;
-  top: 4px;
+  left: 90px;
+  top: 2px;
   color: #7a7a7a;
-  font-size: 22px;
+  font-size: 15px;
   line-height: 1;
   white-space: nowrap;
 }
 
 .small-stat .grade {
   display: block;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
   margin-top: 2px;
 }
 
 .currency {
   flex: 1;
-  padding-top: 4px;
+  padding-top: 0;
   color: #d11414;
-  font-size: 39px;
+  font-size: 26px;
   line-height: 1;
   text-align: right;
   font-weight: 500;
@@ -335,12 +335,12 @@ body {
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .btn-plus {
-  width: 50px;
-  height: 50px;
+  width: 38px;
+  height: 38px;
   border: 1px solid #d9b3b3;
   border-radius: 4px;
   color: #ce5353;
@@ -348,7 +348,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 26px;
   font-weight: 300;
   font-family: inherit;
   cursor: pointer;
@@ -357,35 +357,35 @@ body {
 
 .coin,
 .cash {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
 }
 
 .blue-area {
   background: linear-gradient(#6488ac, #5b7ea0);
   color: #f8f8f8;
-  padding-top: 12px;
+  padding-top: 6px;
   border-top: 1px solid #7d9ab7;
   flex: 1;
 }
 
 .blue-area .play {
   text-align: center;
-  padding: 8px 0 10px;
+  padding: 4px 0 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   cursor: pointer;
 }
 
 .blue-area .play .triangle {
-  font-size: 46px;
+  font-size: 24px;
   line-height: 1;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 
 .blue-area .play .label {
-  font: italic 700 30px Georgia, "Times New Roman", serif;
+  font: italic 700 18px Georgia, "Times New Roman", serif;
 }
 
 .grid {
@@ -394,7 +394,7 @@ body {
 }
 
 .cell {
-  min-height: 124px;
+  min-height: 58px;
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   display: flex;
@@ -403,7 +403,7 @@ body {
   justify-content: center;
   position: relative;
   text-align: center;
-  padding: 12px 10px;
+  padding: 6px 8px;
   cursor: pointer;
 }
 
@@ -412,80 +412,80 @@ body {
 }
 
 .cell .icon {
-  font-size: 34px;
+  font-size: 21px;
   line-height: 1;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   opacity: 0.96;
 }
 
 .cell .text {
-  font: italic 700 27px Georgia, "Times New Roman", serif;
+  font: italic 700 15px Georgia, "Times New Roman", serif;
   line-height: 1.05;
 }
 
 .cell .num {
   font-style: normal;
   font-weight: 400;
-  font-size: 28px;
-  margin-left: 6px;
+  font-size: 17px;
+  margin-left: 3px;
 }
 
 .tournament-icon {
-  width: 43px;
-  height: 32px;
-  border: 4px solid #fff;
+  width: 30px;
+  height: 22px;
+  border: 3px solid #fff;
   border-radius: 2px;
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
 }
 
 .tournament-icon:before {
   content: "";
   position: absolute;
   left: 50%;
-  top: -4px;
-  bottom: -4px;
-  border-left: 4px solid #fff;
+  top: -3px;
+  bottom: -3px;
+  border-left: 3px solid #fff;
 }
 
 .tournament-icon:after {
   content: "";
   position: absolute;
-  left: -4px;
-  right: -4px;
+  left: -3px;
+  right: -3px;
   top: 50%;
-  border-top: 4px solid #fff;
+  border-top: 3px solid #fff;
 }
 
 .friends-icon {
-  width: 60px;
-  height: 42px;
+  width: 44px;
+  height: 30px;
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .friends-icon .head {
   position: absolute;
-  width: 19px;
-  height: 19px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #fff;
   top: 0;
 }
 
 .friends-icon .head.one {
-  left: 7px;
+  left: 5px;
 }
 
 .friends-icon .head.two {
-  right: 7px;
+  right: 5px;
 }
 
 .friends-icon .body {
   position: absolute;
-  width: 31px;
-  height: 21px;
-  border-radius: 18px 18px 5px 5px;
+  width: 24px;
+  height: 16px;
+  border-radius: 14px 14px 5px 5px;
   background: #fff;
   bottom: 0;
 }
@@ -500,16 +500,16 @@ body {
 
 .new-badge {
   position: absolute;
-  right: 10px;
-  top: 12px;
+  right: 6px;
+  top: 6px;
   background: #ff4f5d;
   color: #fff;
-  padding: 6px 16px 8px;
-  border-radius: 28px 28px 28px 0;
+  padding: 3px 9px 4px;
+  border-radius: 20px 20px 20px 0;
   transform: rotate(-10deg);
   font-weight: 700;
-  font-size: 18px;
-  border: 2px solid #ffd1d4;
+  font-size: 11px;
+  border: 1px solid #ffd1d4;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
@@ -519,7 +519,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 16px 0 10px;
+  padding: 10px 0 6px;
 }
 
 .title-row .name {
@@ -529,9 +529,9 @@ body {
 .diamond {
   position: absolute;
   right: 14px;
-  top: 10px;
-  width: 34px;
-  height: 34px;
+  top: 8px;
+  width: 26px;
+  height: 26px;
   transform: rotate(45deg);
   background: linear-gradient(135deg, #8b2ea8, #d59be0);
   box-shadow: 0 0 0 1px #b77ac8 inset;
@@ -547,13 +547,13 @@ body {
 }
 
 .blue-area .filters-title {
-  font: italic 700 30px Georgia, "Times New Roman", serif;
+  font: italic 700 20px Georgia, "Times New Roman", serif;
   text-align: center;
-  padding: 6px 0 0;
+  padding: 4px 0 0;
 }
 
 .filters {
-  padding: 8px 14px 10px;
+  padding: 6px 14px 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
 }
 
@@ -573,8 +573,8 @@ body {
 }
 
 .mini {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 3px;
   opacity: 0.95;
@@ -626,32 +626,32 @@ body {
 }
 
 .numbox {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 13px;
   color: #dfe7ef;
 }
 
 .arrow {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.14);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .smalltxt {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 17px;
+  font-size: 13px;
 }
 
 .smalltxt.right {
@@ -660,8 +660,8 @@ body {
 
 .rooms-list .row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-  padding: 14px 12px 12px;
-  min-height: 98px;
+  padding: 9px 12px 8px;
+  min-height: 68px;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -679,9 +679,9 @@ body {
 
 .row .left .name2 {
   text-align: center;
-  font-size: 27px;
+  font-size: 20px;
   line-height: 1.05;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .row .left .meta {
@@ -689,25 +689,25 @@ body {
   align-items: center;
   gap: 10px;
   justify-content: flex-start;
-  font-size: 32px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .row .left .meta .people {
-  font-size: 22px;
+  font-size: 16px;
   opacity: 0.8;
 }
 
 .name2 .lockmini {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   vertical-align: baseline;
   margin-left: 4px;
 }
 
 .flag {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 2px;
   position: relative;
@@ -717,10 +717,10 @@ body {
 .flag:before {
   content: "";
   position: absolute;
-  left: 4px;
-  top: 4px;
-  right: 4px;
-  bottom: 4px;
+  left: 3px;
+  top: 3px;
+  right: 3px;
+  bottom: 3px;
   background: rgba(255, 255, 255, 0.25);
 }
 
@@ -733,14 +733,14 @@ body {
 }
 
 .chip {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.45);
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .chip-img {
@@ -749,14 +749,14 @@ body {
 }
 
 .chip-img img {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 }
 
 .row .go {
   margin-left: 10px;
-  font-size: 40px;
+  font-size: 28px;
   color: #fff;
   opacity: 0.95;
 }
@@ -782,9 +782,10 @@ body.app-tab .tab-content {
 }
 
 body.app-tab .bottom-nav {
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
 }
 
 /* --- Rooms tab --- */
@@ -1069,7 +1070,7 @@ body.app-tab .bottom-nav {
 
 .create-header {
   position: relative;
-  height: 122px;
+  height: 84px;
   flex: none;
   background: linear-gradient(#7292ad, #5b7d9e);
   display: flex;
@@ -1078,42 +1079,42 @@ body.app-tab .bottom-nav {
 }
 
 .create-header .title {
-  font: bold 36px Georgia;
+  font: bold 26px Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .create-header .gem {
   position: absolute;
-  top: 14px;
-  right: 17px;
-  width: 48px;
-  height: 48px;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
   background: #0dbeef;
   transform: rotate(45deg);
-  box-shadow: 0 0 0 4px #15e67e inset;
+  box-shadow: 0 0 0 3px #15e67e inset;
 }
 
 .create-header .gem:after {
   content: "✦";
-  font-size: 26px;
+  font-size: 20px;
   color: #fff;
   display: block;
   transform: rotate(-45deg);
   text-align: center;
-  line-height: 48px;
+  line-height: 36px;
 }
 
 .create-content {
   flex: 1;
   min-height: 0;
   background: linear-gradient(135deg, #6489aa, #5b7d9e);
-  padding: 18px 24px 12px;
+  padding: 12px 18px 8px;
   overflow-y: auto;
 }
 
 .create-page .script {
-  font: italic bold 25px Georgia;
+  font: italic bold 20px Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -1125,24 +1126,24 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .bet .label {
-  font: italic bold 22px Georgia;
+  font: italic bold 17px Georgia;
 }
 
 .create-page .bet .amount span {
-  font: bold 32px Georgia;
+  font: bold 24px Georgia;
   color: #fff;
 }
 
 .create-page .bet .amount .cash {
   margin-left: 5px;
-  font-size: 29px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .create-page .slider {
-  margin-top: 12px;
-  margin-bottom: 5px;
-  height: 34px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  height: 28px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1152,45 +1153,45 @@ body.app-tab .bottom-nav {
 
 .create-page .slider .track {
   position: absolute;
-  top: 15px;
+  top: 12px;
   left: 8px;
   right: 8px;
-  height: 8px;
-  border-radius: 4px;
+  height: 6px;
+  border-radius: 3px;
   background: linear-gradient(135deg, #24a838, #46d056);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
 }
 
 .create-page .slider .thumb {
   position: absolute;
-  top: 2px;
+  top: 1px;
   left: 0;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  outline: 5px solid rgba(255, 255, 255, 0.4);
+  outline: 4px solid rgba(255, 255, 255, 0.4);
   cursor: pointer;
 }
 
 .create-page .scale {
   display: flex;
   justify-content: space-between;
-  font: bold 12px Georgia;
+  font: bold 10px Georgia;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  margin-bottom: 26px;
+  margin-bottom: 12px;
 }
 
 .create-page .heading {
-  font: italic bold 25px Georgia;
-  margin: 0 0 5px;
+  font: italic bold 19px Georgia;
+  margin: 0 0 4px;
 }
 
 .create-page .pill {
   display: flex;
-  height: 40px;
+  height: 32px;
   border-radius: 30px;
   overflow: hidden;
   background: rgba(40, 100, 139, 0.36);
@@ -1204,7 +1205,7 @@ body.app-tab .bottom-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  font: bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font: bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   color: #fff;
   cursor: pointer;
   user-select: none;
@@ -1231,7 +1232,7 @@ body.app-tab .bottom-nav {
 
 .create-page .settings-pill {
   display: flex;
-  height: 42px;
+  height: 32px;
   border-radius: 30px;
   overflow: hidden;
   background: rgba(40, 100, 139, 0.36);
@@ -1269,8 +1270,8 @@ body.app-tab .bottom-nav {
   display: grid;
   grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: 12px;
-  margin-top: 25px;
-  margin-bottom: 5px;
+  margin-top: 12px;
+  margin-bottom: 4px;
 }
 
 .create-page .subheads span:last-child {
@@ -1281,11 +1282,11 @@ body.app-tab .bottom-nav {
   display: grid;
   grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: 12px;
-  margin-bottom: 26px;
+  margin-bottom: 12px;
 }
 
 .create-page .game-heading {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .create-page .modes {
@@ -1297,7 +1298,7 @@ body.app-tab .bottom-nav {
   position: relative;
   width: 25%;
   box-sizing: border-box;
-  padding: 7px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1311,16 +1312,16 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .mode .ico {
-  width: 49px;
-  height: 49px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   margin-bottom: 2px;
   filter: brightness(0) invert(1) opacity(0.72);
 }
 
 .create-page .mode small {
-  font-size: 16px;
-  line-height: 19px;
+  font-size: 12px;
+  line-height: 14px;
 }
 
 .create-page .mode .mode-check {
@@ -1350,7 +1351,7 @@ body.app-tab .bottom-nav {
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, #6489aa, #5b7d9e);
-  padding: 12px 24px calc(14px + env(safe-area-inset-bottom));
+  padding: 8px 18px calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -1362,21 +1363,21 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .password .box {
-  width: 45px;
-  height: 45px;
+  width: 36px;
+  height: 36px;
   background: #fff;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
   display: grid;
   place-items: center;
-  font-size: 30px;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .create-page .password .box:after {
   content: "";
-  width: 14px;
-  height: 7px;
+  width: 12px;
+  height: 6px;
   border-left: 3px solid transparent;
   border-bottom: 3px solid transparent;
   transform: rotate(-45deg);
@@ -1387,27 +1388,27 @@ body.app-tab .bottom-nav {
 }
 
 .create-page .password .text {
-  font: italic bold 20px Georgia;
+  font: italic bold 16px Georgia;
   margin-left: 8px;
 }
 
 .create-page .create {
   flex: 1;
-  margin-left: 20px;
-  height: 54px;
+  margin-left: 16px;
+  height: 44px;
   background: linear-gradient(180deg, #f88a1d, #e26618);
   border-radius: 10px;
   text-align: center;
-  font: italic bold 27px Georgia;
+  font: italic bold 21px Georgia;
   color: #fff;
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
   cursor: pointer;
   user-select: none;
-  line-height: 54px;
+  line-height: 44px;
 }
 
 .create-page .create b {
-  font-size: 25px;
+  font-size: 19px;
 }
 
 /* --- Empty / loader --- */

@@ -15,12 +15,22 @@ window.App = window.App || {};
     return '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   };
 
-  App.avatarHtml = function (name, photo, size) {
+  App.telegramIconHtml = function (size) {
+    const s = size || 64;
+    return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-label="Telegram"><defs><linearGradient id="tg-grad-${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#37BBED"/><stop offset="1" stop-color="#1E96C8"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#tg-grad-${s})"/><path fill="#fff" d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.529 1.462l4.552 1.42 10.532-6.645c.499-.303.953-.14.579.192l-8.533 7.701-.321 4.705c.253 0 .362-.117.503-.248l2.247-2.161 4.652 3.435c.857.47 1.463.228 1.678-.787l3.04-14.292c.312-1.237-.54-1.745-1.092-1.578z"/></svg>`;
+  };
+
+  App.avatarHtml = function (name, photo, size, source) {
     const s = size || 64;
     const initial = App.esc((name || "?").trim().charAt(0).toUpperCase() || "?");
+    const isTg = source === "telegram";
     if (photo) {
-      return `<div class="avatar" style="width:${s}px;height:${s}px;background-image:url('${App.esc(photo)}')"></div>`;
+      const fallback = isTg
+        ? `this.outerHTML=App.telegramIconHtml(${s})`
+        : `this.outerHTML='<div class="avatar avatar-init" style="width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px">${initial}</div>'`;
+      return `<img class="avatar" src="${App.esc(photo)}" alt="" style="width:${s}px;height:${s}px;object-fit:cover" onerror="${fallback}">`;
     }
+    if (isTg) return App.telegramIconHtml(s);
     return `<div class="avatar avatar-init" style="width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px">${initial}</div>`;
   };
 

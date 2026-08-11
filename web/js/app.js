@@ -26,7 +26,7 @@ window.App = window.App || {};
       .then(() => {
         App.me = me;
         const hu = document.getElementById("header-user");
-        hu.innerHTML = App.avatarHtml(me.name, me.photo, 34);
+        hu.innerHTML = App.avatarHtml(me.name, me.photo, 34, me.source);
         hu.addEventListener("click", () => App.setTab("profile"));
         App.setTab("profile");
       });

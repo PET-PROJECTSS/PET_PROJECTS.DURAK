@@ -13,8 +13,10 @@ window.App = window.App || {};
         <path d="M16 132c3-34 29-57 64-57s61 23 64 57H16Z" fill="#999"/>
         <path d="M50 76c8 8 18 12 30 12s22-4 30-12" fill="none" stroke="#aaa" stroke-width="5" opacity=".45"/>
       </svg>`;
-    const avatarInner = me.photo
-      ? `<img class="person-icon" src="${esc(me.photo)}" alt="" style="border-radius:8px;object-fit:cover">`
+    const avatarInner = me.source === "telegram"
+      ? (me.photo
+          ? `<img class="person-icon" src="${esc(me.photo)}" alt="" style="border-radius:8px;object-fit:cover" onerror="this.outerHTML=App.telegramIconHtml(148)">`
+          : App.telegramIconHtml(148))
       : personIcon;
     const menuCells = `
       <div class="cell"><div class="tournament-icon"></div><div class="text">Турниры</div></div>
@@ -45,7 +47,7 @@ window.App = window.App || {};
         <div class="grid">${menuCells}</div>
       </section>
       <div id="tg-diag" style="padding:10px;font-size:11px;color:#99a;text-align:center;word-break:break-all;display:none"></div>`;
-    if (App.isTelegram) {
+    if (window.AppConfig && AppConfig.showTgDiag && App.isTelegram) {
       const diag = document.getElementById("tg-diag");
       diag.style.display = "block";
       diag.textContent = "tg:" + App.isTelegram
