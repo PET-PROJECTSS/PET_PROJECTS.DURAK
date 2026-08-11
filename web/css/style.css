@@ -369,6 +369,9 @@ body {
   padding-top: calc(var(--s) * 6px);
   border-top: 1px solid #7d9ab7;
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .blue-area .play {
@@ -376,6 +379,7 @@ body {
   padding: calc(var(--s) * 4px) 0 calc(var(--s) * 6px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   cursor: pointer;
+  flex: none;
 }
 
 .blue-area .play .triangle {
@@ -392,10 +396,13 @@ body {
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: 1fr;
 }
 
 .cell {
-  min-height: calc(var(--s) * 58px);
+  min-height: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
   display: flex;
@@ -406,6 +413,7 @@ body {
   text-align: center;
   padding: calc(var(--s) * 6px) calc(var(--s) * 8px);
   cursor: pointer;
+  overflow: hidden;
 }
 
 .cell:nth-child(2n) {
@@ -517,7 +525,7 @@ body {
 .tg-avatar {
   position: relative;
   display: inline-block;
-  border-radius: 50%;
+  border-radius: calc(var(--s) * 7px);
   overflow: hidden;
 }
 
@@ -547,14 +555,14 @@ body {
   width: calc(var(--s) * 108px);
   height: calc(var(--s) * 88px);
   margin: 0 auto;
+  background: linear-gradient(135deg, #cfa062, #8a5a2f);
+  border-radius: calc(var(--s) * 11px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 calc(var(--s) * 2px) rgba(255, 255, 255, 0.18);
 }
 
 .tg-avatar-slot .tg-avatar {
   position: absolute;
-  inset: 0;
-  margin: auto;
-  width: calc(var(--s) * 88px) !important;
-  height: calc(var(--s) * 88px) !important;
+  inset: calc(var(--s) * 5px);
 }
 
 /* --- Rooms tab (reference design) --- */
@@ -594,11 +602,13 @@ body {
   font: italic 700 calc(var(--s) * 20px) Georgia, "Times New Roman", serif;
   text-align: center;
   padding: calc(var(--s) * 4px) 0 0;
+  flex: none;
 }
 
 .filters {
   padding: calc(var(--s) * 6px) calc(var(--s) * 14px) calc(var(--s) * 8px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+  flex: none;
 }
 
 .filters-row {
@@ -808,6 +818,13 @@ body {
 /* Reference-style tabs are white full-bleed pages */
 body.app-tab {
   background: #fff;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.app-tab .screen {
+  height: 100dvh;
+  min-height: 0;
 }
 
 body.app-tab .app-header {
@@ -823,6 +840,8 @@ body.app-tab .tab-content {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 body.app-tab .bottom-nav {
@@ -880,6 +899,9 @@ body.app-tab .bottom-nav {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .room-card {
@@ -2314,50 +2336,12 @@ body.app-tab .bottom-nav {
     padding-top: max(14px, env(safe-area-inset-top));
   }
 
-  .top .name {
-    font-size: clamp(24px, 5.2vw, 30px);
-  }
-
-  .currency {
-    font-size: clamp(28px, 6.8vw, 39px);
-  }
-
-  .btn-plus {
-    width: 44px;
-    height: 44px;
-    font-size: 31px;
-  }
-
-  .cell .text {
-    font-size: clamp(22px, 4.7vw, 27px);
-  }
-
-  .cell {
-    min-height: 116px;
-  }
-
-  .blue-area .filters-title {
-    font-size: clamp(24px, 5.8vw, 30px);
-  }
-
-  .rooms-list .row .left .name2 {
-    font-size: clamp(20px, 4.6vw, 27px);
-  }
-
-  .rooms-list .row .left .meta {
-    font-size: clamp(25px, 5.8vw, 32px);
-  }
-
-  .rooms-list .row {
-    min-height: 92px;
-  }
-
   .nav-item {
-    font-size: clamp(14px, 3.8vw, 18px);
+    font-size: calc(var(--s) * 14px);
   }
 
   .nav-icon {
-    font-size: clamp(34px, 8vw, 42px);
+    font-size: calc(var(--s) * 30px);
   }
 }
 

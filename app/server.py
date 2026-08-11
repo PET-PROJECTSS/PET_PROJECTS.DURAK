@@ -36,7 +36,7 @@ def _resolve_player(payload: dict):
                 "source": "telegram",
             }
     guest_name = (payload.get("guest_name") or "").strip()
-    if config.GUEST_ALLOWED and guest_name:
+    if config.GUEST_ALLOWED:
         return {
             "id": f"guest_{uuid.uuid4().hex[:8]}",
             "name": guest_name[:32] or "Гость",

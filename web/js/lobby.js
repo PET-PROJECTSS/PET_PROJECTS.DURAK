@@ -165,8 +165,7 @@ window.App = window.App || {};
     }
 
     async function joinRoom(id, isPrivate) {
-      const payload = { init_data: App.initData };
-      if (App.me.source === "guest") payload.guest_name = App.me.name;
+      const payload = { init_data: App.initData, guest_name: (App.me && App.me.name) || "Гость" };
       if (isPrivate) {
         App.promptPassword((pwd) => {
           if (pwd == null) return;
@@ -401,8 +400,8 @@ window.App = window.App || {};
           stake: state.stake,
         },
         init_data: App.initData,
+        guest_name: (App.me && App.me.name) || "Гость",
       };
-      if (App.me && App.me.source === "guest") payload.guest_name = App.me.name;
       try {
         const data = await api.create(payload);
         App.joinGame(data);
