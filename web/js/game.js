@@ -216,7 +216,7 @@ window.App = window.App || {};
     const count = Math.max(0, Math.min(n, 7));
     let html = "";
     for (let i = 0; i < count; i++) {
-      html += `<div class="back" style="--d:${100 + i * 70}ms"><i></i></div>`;
+      html += `<div class="back" style="--d:${100 + i * 70}ms"><img src="assets/big/cards/card_bg.png" alt=""></div>`;
     }
     return html;
   }
