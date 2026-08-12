@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from game.durak import Card, DurakError, DurakGame
+from game.durak import RANKS_24, RANKS_36, RANKS_52, Card, DurakError, DurakGame
 
 
 class CardTests(unittest.TestCase):
@@ -133,6 +133,45 @@ class GameTests(unittest.TestCase):
         self.assertEqual(len({c.code() for c in all_cards}), 52)
         ranks = sorted({c.rank for c in all_cards})
         self.assertEqual(ranks, ["10", "2", "3", "4", "5", "6", "7", "8", "9", "A", "J", "K", "Q"])
+
+    def test_deck_36_has_no_low_ranks(self):
+        for seed in range(1, 30):
+            random.seed(seed)
+            g = DurakGame(["a", "b"], deck_size=36)
+            all_cards = g.hands["a"] + g.hands["b"] + g.deck + [g.trump_card]
+            self.assertEqual(len(all_cards), 36)
+            self.assertEqual(len({c.code() for c in all_cards}), 36)
+            for c in all_cards:
+                self.assertIn(c.rank, RANKS_36, f"rank {c.rank} is not allowed in 36-card deck")
+
+    def test_deck_24_has_no_low_ranks(self):
+        for seed in range(1, 30):
+            random.seed(seed)
+            g = DurakGame(["a", "b"], deck_size=24)
+            all_cards = g.hands["a"] + g.hands["b"] + g.deck + [g.trump_card]
+            self.assertEqual(len(all_cards), 24)
+            self.assertEqual(len({c.code() for c in all_cards}), 24)
+            for c in all_cards:
+                self.assertIn(c.rank, RANKS_24, f"rank {c.rank} is not allowed in 24-card deck")
+
+    def test_52_deck_covers_all_ranks(self):
+        for seed in range(1, 30):
+            random.seed(seed)
+            g = DurakGame(["a", "b"], deck_size=52)
+            all_cards = g.hands["a"] + g.hands["b"] + g.deck + [g.trump_card]
+            self.assertEqual(len(all_cards), 52)
+            self.assertEqual(len({c.code() for c in all_cards}), 52)
+            self.assertEqual(set(c.rank for c in all_cards), set(RANKS_52))
+
+    def test_no_duplicate_cards_between_players(self):
+        for seed in range(1, 50):
+            for deck in (24, 36, 52):
+                random.seed(seed)
+                g = DurakGame(["a", "b"], deck_size=deck)
+                self.assertEqual(len({c.code() for c in g.hands["a"] + g.hands["b"]}),
+                                 len(g.hands["a"]) + len(g.hands["b"]),
+                                 f"duplicate card dealt in {deck}-card deck (seed {seed})")
+
 
     def test_low_ranks_parse_and_beat(self):
         self.assertEqual(Card("2C").rank, "2")

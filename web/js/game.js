@@ -536,7 +536,6 @@ window.App = window.App || {};
     if (s.finished) {
       html.push(`<div class="res">${s.winner === App.game.pid ? "Вы выиграли!" : "Вы проиграли"}</div>`);
       html.push(`<button class="big-btn" id="act-restart">Сыграть ещё</button>`);
-      html.push(`<button class="big-btn ghost" id="act-leave">В лобби</button>`);
     } else if (s.turn === "attack") {
       const allBeat = s.table.length && !s.table.some((p) => p[1] === null);
       if (s.i_am_attacker && allBeat) html.push(`<button class="big-btn" id="act-done">Бито</button>`);
@@ -728,7 +727,6 @@ window.App = window.App || {};
 
     const waitEl = sceneEl("waiting-screen");
     waitEl.innerHTML = `
-      <div class="top-white"></div>
       <button class="scene-btn scene-leave" id="wait-leave" title="Выход">
         <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 5 8.5 13l7 8"/></svg>
       </button>
@@ -795,10 +793,7 @@ window.App = window.App || {};
     showGameUi();
     const zone = sceneEl("turn-zone");
     zone.innerHTML = `
-      <div class="turn-text dc">Соединение потеряно</div>
-      <button class="big-btn" id="act-leave">В лобби</button>`;
-    const leave = sceneEl("act-leave");
-    if (leave) leave.addEventListener("click", leaveGame);
+      <div class="turn-text dc">Соединение потеряно</div>`;
   }
 
   function leaveGame() {

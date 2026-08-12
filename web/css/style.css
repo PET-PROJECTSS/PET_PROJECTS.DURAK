@@ -2366,14 +2366,9 @@ body.app-tab .bottom-nav {
   background-size: 4px 4px, 5px 5px, 100% 100%;
 }
 
-.wroom .top-white {
-  height: 50px;
-  background: #fff;
-}
-
 .wroom .scene-leave {
   position: absolute;
-  top: 60px;
+  top: 10px;
   left: 8px;
   width: 48px;
   height: 48px;
@@ -2402,7 +2397,7 @@ body.app-tab .bottom-nav {
 .wroom .money {
   position: absolute;
   right: 8px;
-  top: 54px;
+  top: 8px;
   font-size: clamp(30px, 7vw, 39px);
   line-height: 1;
   font-weight: 300;
@@ -2427,7 +2422,7 @@ body.app-tab .bottom-nav {
 
 .wroom .top-icons {
   position: absolute;
-  top: 65px;
+  top: 24px;
   left: 205px;
   display: flex;
   gap: 14px;
