@@ -16,7 +16,7 @@ window.App = window.App || {};
     me() {
       const params = new URLSearchParams();
       if (App.initData) params.set("init_data", App.initData);
-      else if (App.guestPid) params.set("guest_pid", App.guestPid);
+      if (App.guestPid) params.set("guest_pid", App.guestPid);
       return this.json(`/api/me?${params.toString()}`);
     },
 
