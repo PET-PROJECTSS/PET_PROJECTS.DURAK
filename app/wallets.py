@@ -6,9 +6,9 @@ import config
 
 
 class WalletStore:
-    START_BALANCE = 5000
-    OLD_START_BALANCE = 10000
-    _VERSION = "2"
+    START_BALANCE = 3000
+    OLD_START_BALANCE = 5000
+    _VERSION = "3"
 
     def __init__(self, path: Optional[str] = None):
         self.path = path or config.WALLET_DB or str(Path(config.BASE_DIR) / "wallets.db")
@@ -35,13 +35,14 @@ class WalletStore:
             row = conn.execute(
                 "SELECT value FROM meta WHERE key='wallet_version'"
             ).fetchone()
-            if row is None:
+            if row is None or row["value"] != self._VERSION:
                 conn.execute(
                     "UPDATE wallets SET balance=? WHERE balance=?",
                     (self.START_BALANCE, self.OLD_START_BALANCE),
                 )
                 conn.execute(
-                    "INSERT INTO meta(key, value) VALUES('wallet_version', ?)",
+                    "INSERT INTO meta(key, value) VALUES('wallet_version', ?)"
+                    " ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                     (self._VERSION,),
                 )
             conn.commit()

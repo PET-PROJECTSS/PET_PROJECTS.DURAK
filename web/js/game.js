@@ -43,6 +43,9 @@ window.App = window.App || {};
   }
 
   App.joinGame = function (data) {
+    if (App.game && App.game.ws && (App.game.ws.readyState === 0 || App.game.ws.readyState === 1)) {
+      return;
+    }
     if (data.balance != null) App.balance = data.balance;
     if (App.stopRoomsPoll) App.stopRoomsPoll();
     App.game = {
@@ -182,7 +185,7 @@ window.App = window.App || {};
     g.prevTurn = s.turn;
 
     sceneEl("game-balance").innerHTML = (App.balance != null ? App.balance : "") + ' <span class="bill">▰</span>';
-    sceneEl("footer-stats").innerHTML = `<span>${App.balance != null ? App.balance : ""} <b class="coin-square">▰</b></span>`;
+    sceneEl("footer-stats").innerHTML = `<span>0 <b class="coin-dot">●</b></span><span>${App.balance != null ? App.balance : ""} <b class="coin-square">▰</b></span>`;
     sceneEl("deck-count").textContent = s.deck > 0 ? s.deck : "";
 
     const trumpEl = sceneEl("trump-card");

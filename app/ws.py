@@ -135,12 +135,13 @@ async def ws_handler(request):
     ws = web.WebSocketResponse(max_msg_size=8192)
     await ws.prepare(request)
 
-    if pid in room.conns and room.conns[pid] is not None:
+    old = room.conns.get(pid)
+    room.conns[pid] = ws
+    if old is not None and old is not ws:
         try:
-            await room.conns[pid].close()
+            await old.close()
         except Exception:
             pass
-    room.conns[pid] = ws
 
     try:
         await ws.send_json(_state_for(room, pid))
@@ -165,38 +166,38 @@ async def ws_handler(request):
     finally:
         if room.conns.get(pid) is ws:
             room.conns.pop(pid, None)
-        room.ready.discard(pid)
-        room.players.pop(pid, None)
-        if not room.players:
-            manager.remove(room.id)
-        elif room.status == "playing":
-            game = room.game
-            if game and not game.finished:
-                remaining = list(room.players.keys())
-                if remaining:
-                    winner = remaining[0]
-                    game.finished = True
-                    game.winner = winner
-                    game.turn = "idle"
-                    room._stake_settled = False
-                    for rp in remaining:
-                        manager.transfer(pid, rp, room.stake)
-                    room._stake_settled = True
-            for cpid, conn in list(room.conns.items()):
+            room.ready.discard(pid)
+            room.players.pop(pid, None)
+            if not room.players:
+                manager.remove(room.id)
+            elif room.status == "playing":
+                game = room.game
+                if game and not game.finished:
+                    remaining = list(room.players.keys())
+                    if remaining:
+                        winner = remaining[0]
+                        game.finished = True
+                        game.winner = winner
+                        game.turn = "idle"
+                        room._stake_settled = False
+                        for rp in remaining:
+                            manager.transfer(pid, rp, room.stake)
+                        room._stake_settled = True
+                for cpid, conn in list(room.conns.items()):
+                    try:
+                        await conn.send_json(_state_for(room, cpid))
+                    except Exception:
+                        pass
+                await asyncio.sleep(2)
+                for conn in list(room.conns.values()):
+                    try:
+                        await conn.close()
+                    except Exception:
+                        pass
+                manager.remove(room.id)
+            else:
                 try:
-                    await conn.send_json(_state_for(room, cpid))
+                    await broadcast(room)
                 except Exception:
                     pass
-            await asyncio.sleep(2)
-            for conn in list(room.conns.values()):
-                try:
-                    await conn.close()
-                except Exception:
-                    pass
-            manager.remove(room.id)
-        else:
-            try:
-                await broadcast(room)
-            except Exception:
-                pass
     return ws

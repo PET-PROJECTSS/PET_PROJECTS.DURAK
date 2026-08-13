@@ -76,6 +76,17 @@ window.App = window.App || {};
     window.scrollTo(0, 0);
   };
 
+  App.refreshBalance = async function () {
+    try {
+      const data = await App.api.me();
+      if (data.balance != null) {
+        App.balance = data.balance;
+        return data.balance;
+      }
+    } catch (e) {}
+    return App.balance;
+  };
+
   App.setTab = function (tab) {
     document.querySelectorAll(".nav-item").forEach((b) => {
       b.classList.toggle("active", b.dataset.tab === tab);

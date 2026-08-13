@@ -3,6 +3,12 @@ window.App = window.App || {};
   const App = window.App;
 
   App.guestName = localStorage.getItem("durak_guest_name") || "";
+  let guestPid = localStorage.getItem("durak_guest_pid");
+  if (!guestPid) {
+    guestPid = "guest_" + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("durak_guest_pid", guestPid);
+  }
+  App.guestPid = guestPid;
 
   function boot() {
     let me = { source: "guest", id: "", name: App.guestName || "Гость", photo: "" };

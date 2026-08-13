@@ -26,6 +26,12 @@ window.App = window.App || {};
       : personIcon;
     const balance = App.balance != null ? App.balance : 0;
     const fmtMoney = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    App.refreshBalance().then((bal) => {
+      if (bal != null && bal !== balance) {
+        const host2 = document.getElementById("tab-content");
+        if (host2 && host2.querySelector(".currency")) App.renderProfile();
+      }
+    });
     const menuCells = `
       <div class="cell"><div class="tournament-icon"></div><div class="text">Турниры</div></div>
       <div class="cell"><div class="new-badge">NEW!</div><div class="icon">i</div><div class="text">Новости</div></div>
@@ -203,7 +209,7 @@ window.App = window.App || {};
     pollTimer = setInterval(refresh, 1000);
 
     async function joinRoom(id, isPrivate) {
-      const payload = { init_data: App.initData, guest_name: (App.me && App.me.name) || "Гость" };
+      const payload = { init_data: App.initData, guest_name: (App.me && App.me.name) || "Гость", guest_pid: App.guestPid };
       if (isPrivate) {
         App.promptPassword((pwd) => {
           if (pwd == null) return;
@@ -439,6 +445,7 @@ window.App = window.App || {};
         },
         init_data: App.initData,
         guest_name: (App.me && App.me.name) || "Гость",
+        guest_pid: App.guestPid,
       };
       try {
         const data = await api.create(payload);

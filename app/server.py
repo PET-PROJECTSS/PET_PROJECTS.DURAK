@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from app.ws import ws_handler
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 logger = logging.getLogger("server")
+
+GUEST_PID_RE = re.compile(r"^guest_[a-z0-9]{6,32}$")
 
 
 def _full_name(u: dict) -> str:
@@ -39,7 +42,9 @@ def _resolve_player(payload: dict):
             }
     guest_name = (payload.get("guest_name") or "").strip()
     if config.GUEST_ALLOWED:
-        pid = f"guest_{uuid.uuid4().hex[:8]}"
+        pid = (payload.get("guest_pid") or "").strip()
+        if not GUEST_PID_RE.match(pid):
+            pid = f"guest_{uuid.uuid4().hex[:8]}"
         return {
             "id": pid,
             "name": guest_name[:32] or "Гость",
@@ -76,6 +81,14 @@ async def me_handler(request):
             })
         else:
             logger.info("me: init_data present but invalid (source guest)")
+    guest_pid = request.query.get("guest_pid", "")
+    if config.GUEST_ALLOWED and GUEST_PID_RE.match(guest_pid):
+        return web.json_response({
+            "ok": True,
+            "source": "guest",
+            "id": guest_pid,
+            "balance": manager.balance_of(guest_pid),
+        })
     return web.json_response({"ok": True, "source": "guest"})
 
 
