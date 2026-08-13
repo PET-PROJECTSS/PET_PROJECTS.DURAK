@@ -751,7 +751,7 @@ window.App = window.App || {};
         ? "Нажмите Готов"
         : "Ожидание соперника...";
     const readyBtn = players.length < 2
-      ? ""
+      ? `<div class="ready-btn spacer" aria-hidden="true"></div>`
       : meReady
         ? `<button class="ready-btn done" disabled>Готов</button>`
         : `<button class="ready-btn" id="wait-ready">Готов</button>`;

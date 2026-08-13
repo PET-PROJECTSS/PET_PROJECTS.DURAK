@@ -2662,6 +2662,11 @@ body.app-tab .bottom-nav {
   cursor: default;
 }
 
+.wroom .ready-btn.spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .wroom .avatar {
   position: relative;
   flex: 0 0 100px;
