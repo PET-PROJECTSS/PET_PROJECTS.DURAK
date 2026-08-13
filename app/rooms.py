@@ -2,6 +2,8 @@ import time
 import uuid
 from typing import Dict, Optional
 
+from app.wallets import WalletStore
+
 
 class Room:
     def __init__(self, room_id: str, name: str, private: bool, password: Optional[str], host: dict, settings: Optional[dict] = None):
@@ -44,18 +46,15 @@ class Room:
 class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
-        self.wallets: Dict[str, int] = {}
+        self.wallets = WalletStore()
 
-    START_BALANCE = 10000
+    START_BALANCE = WalletStore.START_BALANCE
 
     def balance_of(self, pid: str) -> int:
-        return self.wallets.get(pid, self.START_BALANCE)
+        return self.wallets.balance_of(pid)
 
     def transfer(self, loser: str, winner: str, stake: int) -> None:
-        if stake <= 0:
-            return
-        self.wallets[loser] = max(0, self.balance_of(loser) - stake)
-        self.wallets[winner] = self.balance_of(winner) + stake
+        self.wallets.transfer(loser, winner, stake)
 
     def _room_id(self) -> str:
         while True:

@@ -3790,3 +3790,58 @@ body.app-tab .bottom-nav {
 .game-scene .emoji-palette .emoji-btn:active {
   transform: scale(0.9);
 }
+
+/* ===================== FINISH OVERLAY ===================== */
+.finish-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 35, 55, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.finish-card {
+  min-width: 300px;
+  text-align: center;
+  color: #fff;
+  padding: 30px 46px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #4b7196, #35506e);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  animation: finish-pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.finish-card.win {
+  background: linear-gradient(160deg, #43a366, #2e7a4a);
+}
+
+.finish-card.lose {
+  background: linear-gradient(160deg, #b95a52, #8a3d38);
+}
+
+.finish-title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.finish-sub {
+  margin-top: 10px;
+  font-size: 20px;
+  opacity: 0.85;
+}
+
+@keyframes finish-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

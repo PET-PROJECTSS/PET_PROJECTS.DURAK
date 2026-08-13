@@ -88,6 +88,7 @@ window.App = window.App || {};
       private: () => App.renderRooms("private"),
       create: App.renderCreate,
     };
+    if (App.stopRoomsPoll) App.stopRoomsPoll();
     if (renderers[tab]) renderers[tab]();
   };
 

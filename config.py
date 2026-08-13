@@ -24,3 +24,5 @@ APP_PORT: int = int(os.getenv("APP_PORT", "8080"))
 APP_URL: str = os.getenv("APP_URL", "http://127.0.0.1:8080")
 
 GUEST_ALLOWED: bool = _as_bool(os.getenv("GUEST_ALLOWED"), True)
+
+WALLET_DB: str = os.getenv("WALLET_DB", "")

@@ -31,6 +31,7 @@ window.App = window.App || {};
 
   App.joinGame = function (data) {
     if (data.balance != null) App.balance = data.balance;
+    if (App.stopRoomsPoll) App.stopRoomsPoll();
     App.game = {
       roomId: data.room_id,
       token: data.token,
@@ -167,7 +168,8 @@ window.App = window.App || {};
     if (g.target && !s.table.some((p) => p[0] === g.target && p[1] === null)) g.target = null;
     g.prevTurn = s.turn;
 
-    sceneEl("game-balance").innerHTML = (App.balance != null ? App.balance : "") + ' <span class="coin-game">🪙</span>';
+    sceneEl("game-balance").innerHTML = (App.balance != null ? App.balance : "") + ' <span class="bill">▰</span>';
+    sceneEl("footer-stats").innerHTML = `<span>${App.balance != null ? App.balance : ""} <b class="coin-square">▰</b></span>`;
     sceneEl("deck-count").textContent = s.deck > 0 ? s.deck : "";
 
     const trumpEl = sceneEl("trump-card");
@@ -534,8 +536,10 @@ window.App = window.App || {};
     const html = [];
 
     if (s.finished) {
-      html.push(`<div class="res">${s.winner === App.game.pid ? "Вы выиграли!" : "Вы проиграли"}</div>`);
-      html.push(`<button class="big-btn" id="act-restart">Сыграть ещё</button>`);
+      if (!App.game._finishShown) {
+        App.game._finishShown = true;
+        showFinishOverlay(s.winner === App.game.pid);
+      }
     } else if (s.turn === "attack") {
       const allBeat = s.table.length && !s.table.some((p) => p[1] === null);
       if (s.i_am_attacker && allBeat) html.push(`<button class="big-btn" id="act-done">Бито</button>`);
@@ -583,8 +587,24 @@ window.App = window.App || {};
       }
     });
     bind("act-done", () => send({ type: "done" }));
-    bind("act-restart", () => send({ type: "restart" }));
     bind("act-leave", leaveGame);
+  }
+
+  /* ---------- конец игры ---------- */
+  function showFinishOverlay(win) {
+    const scene = sceneEl("game-scene");
+    if (!scene) return;
+    const overlay = document.createElement("div");
+    overlay.className = "finish-overlay";
+    overlay.innerHTML = `
+      <div class="finish-card ${win ? "win" : "lose"}">
+        <div class="finish-title">${win ? "Победа!" : "Поражение"}</div>
+        <div class="finish-sub">${win ? "Вы выиграли партию" : "Повезёт в следующий раз"}</div>
+      </div>`;
+    scene.appendChild(overlay);
+    setTimeout(() => {
+      if (App.game) App.leaveGame();
+    }, 2800);
   }
 
   /* ---------- раздача ---------- */

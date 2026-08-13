@@ -4,6 +4,14 @@ window.App = window.App || {};
   const esc = App.esc;
   const api = App.api;
 
+  let pollTimer = null;
+  App.stopRoomsPoll = function () {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  };
+
   App.renderProfile = function () {
     const me = App.me;
     const host = document.getElementById("tab-content");
@@ -72,6 +80,7 @@ window.App = window.App || {};
   };
 
   App.renderRooms = function (kind) {
+    App.stopRoomsPoll();
     const host = document.getElementById("tab-content");
     const icon = (name) => `assets/general/appTexture4444/${name}`;
     const isOpen = kind === "open";
@@ -117,6 +126,48 @@ window.App = window.App || {};
     if (diamond) diamond.addEventListener("click", load);
     load();
 
+    function buildRows(rooms) {
+      return rooms
+        .map((r) => {
+          const modeIcon = r.mode === "perevodnoi" ? "game_icon_perevodnoi_durak.png" : "game_icon_podkidnoi_durak.png";
+          const busy = r.players >= r.max || r.status === "playing";
+          return `
+          <div class="row ${busy ? "full" : ""}" data-join="${esc(r.id)}" data-private="${r.private ? 1 : 0}">
+            <div class="left">
+              <div class="name2">${esc(r.name)}${r.private ? `<img class="lockmini" src="${icon("game_icon_lock.png")}" alt="">` : ""}</div>
+              <div class="meta"><span>100</span><span class="flag"></span><span>${r.players}/${r.max}</span><span class="people">◔</span></div>
+            </div>
+            <div class="rightside">
+              <div class="chips">
+                <span class="chip">${r.deck_size}</span>
+                <span class="chip">◔</span>
+                <span class="chip">✕</span>
+                <span class="chip">✌</span>
+                <span class="chip chip-img"><img src="${icon(modeIcon)}" alt=""></span>
+                <span class="go">›</span>
+              </div>
+            </div>
+          </div>`;
+        })
+        .join("");
+    }
+
+    function emptyHtml() {
+      return `<div class="empty">${isOpen ? "Пока нет открытых комнат. Создай первую!" : "Нет приватных комнат"}</div>`;
+    }
+
+    function bindRows(list) {
+      list.querySelectorAll(".row").forEach((row) => {
+        row.addEventListener("click", () => {
+          if (row.classList.contains("full")) {
+            App.toast("Комната занята", "error");
+            return;
+          }
+          joinRoom(row.dataset.join, row.dataset.private === "1");
+        });
+      });
+    }
+
     async function load() {
       const list = document.getElementById("rooms-list");
       if (!list) return;
@@ -124,46 +175,31 @@ window.App = window.App || {};
       try {
         const data = await api.rooms();
         const rooms = data.rooms.filter((r) => (isOpen ? !r.private : r.private));
-        if (!rooms.length) {
-          list.innerHTML = `<div class="empty">${isOpen ? "Пока нет открытых комнат. Создай первую!" : "Нет приватных комнат"}</div>`;
-          return;
-        }
-        list.innerHTML = rooms
-          .map((r) => {
-            const modeIcon = r.mode === "perevodnoi" ? "game_icon_perevodnoi_durak.png" : "game_icon_podkidnoi_durak.png";
-            const busy = r.players >= r.max || r.status === "playing";
-            return `
-            <div class="row ${busy ? "full" : ""}" data-join="${esc(r.id)}" data-private="${r.private ? 1 : 0}">
-              <div class="left">
-                <div class="name2">${esc(r.name)}${r.private ? `<img class="lockmini" src="${icon("game_icon_lock.png")}" alt="">` : ""}</div>
-                <div class="meta"><span>100</span><span class="flag"></span><span>${r.players}/${r.max}</span><span class="people">◔</span></div>
-              </div>
-              <div class="rightside">
-                <div class="chips">
-                  <span class="chip">${r.deck_size}</span>
-                  <span class="chip">◔</span>
-                  <span class="chip">✕</span>
-                  <span class="chip">✌</span>
-                  <span class="chip chip-img"><img src="${icon(modeIcon)}" alt=""></span>
-                  <span class="go">›</span>
-                </div>
-              </div>
-            </div>`;
-          })
-          .join("");
-        list.querySelectorAll(".row").forEach((row) => {
-          row.addEventListener("click", () => {
-            if (row.classList.contains("full")) {
-              App.toast("Комната занята", "error");
-              return;
-            }
-            joinRoom(row.dataset.join, row.dataset.private === "1");
-          });
-        });
+        const html = rooms.length ? buildRows(rooms) : emptyHtml();
+        list.dataset.sig = html;
+        list.innerHTML = html;
+        bindRows(list);
       } catch (e) {
         list.innerHTML = `<div class="empty">Не удалось загрузить комнаты</div>`;
       }
     }
+
+    async function refresh() {
+      try {
+        const data = await api.rooms();
+        const rooms = data.rooms.filter((r) => (isOpen ? !r.private : r.private));
+        const list = document.getElementById("rooms-list");
+        if (!list) return;
+        const html = rooms.length ? buildRows(rooms) : emptyHtml();
+        if (list.dataset.sig !== html) {
+          list.dataset.sig = html;
+          list.innerHTML = html;
+          bindRows(list);
+        }
+      } catch (e) {}
+    }
+
+    pollTimer = setInterval(refresh, 3000);
 
     async function joinRoom(id, isPrivate) {
       const payload = { init_data: App.initData, guest_name: (App.me && App.me.name) || "Гость" };
