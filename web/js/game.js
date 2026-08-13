@@ -153,16 +153,17 @@ window.App = window.App || {};
     const w = screen.clientWidth || 0;
     const h = screen.clientHeight || 0;
     if (!w || !h) return;
-    const s = Math.min(w / 576, h / 1280);
+    const sx = w / 576;
+    const sy = h / 1280;
     const scene = sceneEl("game-scene");
     if (scene) {
-      scene.style.transform = `translate(-50%, -50%) scale(${s}, ${s})`;
-      scene._scaleX = s;
-      scene._scaleY = s;
+      scene.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+      scene._scaleX = sx;
+      scene._scaleY = sy;
     }
     const wait = sceneEl("waiting-screen");
     if (wait) {
-      wait.style.transform = `translate(-50%, -50%) scale(${s}, ${s})`;
+      wait.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
     }
   }
 
@@ -353,7 +354,7 @@ window.App = window.App || {};
     const curHand = new Set(cards);
     App.game._prevHand = curHand;
     const newCards = prevHand ? cards.filter((c) => !prevHand.has(c)) : [];
-    const cardW = n > 7 ? 104 : n > 5 ? 120 : 130;
+    const cardW = n > 7 ? 104 : n > 5 ? 118 : 126;
     const margin = 4;
     const span = 576 - margin * 2 - cardW;
     zone.innerHTML = cards
@@ -539,14 +540,8 @@ window.App = window.App || {};
 
   /* ---------- нижняя панель ---------- */
   function turnStatus(s) {
-    if (s.turn === "attack") return s.can_attack ? "Ваш ход" : `Ходит ${nameShort(s, s.active_id)}`;
-    return s.can_defend ? "Отбивайтесь" : `Отбивается ${nameShort(s, s.active_id)}`;
-  }
-
-  function nameShort(s, pid) {
-    if (!pid) return "соперник";
-    const p = (s.players || []).find((x) => x.id === pid);
-    return p && p.name ? p.name : "соперник";
+    if (s.turn === "attack") return s.can_attack ? "Ваш ход" : "Ожидание соперника";
+    return s.can_defend ? "Отбивайтесь" : "Ожидание соперника";
   }
 
   function renderTurn(s) {
@@ -751,11 +746,15 @@ window.App = window.App || {};
     const readyText = meReady
       ? allReady && players.length >= 2
         ? "Раздача..."
-        : "Ожидание игроков..."
-      : "Нажмите Готов";
-    const readyBtn = meReady
-      ? `<button class="ready-btn done" disabled>Готов</button>`
-      : `<button class="ready-btn" id="wait-ready">Готов</button>`;
+        : "Ожидание соперника..."
+      : players.length >= 2
+        ? "Нажмите Готов"
+        : "Ожидание соперника...";
+    const readyBtn = players.length < 2
+      ? ""
+      : meReady
+        ? `<button class="ready-btn done" disabled>Готов</button>`
+        : `<button class="ready-btn" id="wait-ready">Готов</button>`;
 
     const meReadyCls = meReady ? " ready" : "";
     const meCheck = meReady ? '<div class="check"></div>' : "";
@@ -795,7 +794,7 @@ window.App = window.App || {};
         btn.classList.add("done");
         btn.disabled = true;
         const rt = waitEl.querySelector(".ready-text");
-        if (rt) rt.textContent = "Ожидание игроков...";
+        if (rt) rt.textContent = "Ожидание соперника...";
         const av = waitEl.querySelector(".avatar");
         if (av) {
           av.classList.add("ready");
