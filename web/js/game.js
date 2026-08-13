@@ -596,6 +596,8 @@ window.App = window.App || {};
       if (Math.hypot(dx, dy) < 8) return;
       d.moved = true;
       dragActive = true;
+      const hz = sceneEl("hand-zone");
+      if (hz) hz.style.zIndex = 100;
       const el = d.el;
       d.orig = {
         left: el.style.left,
@@ -696,6 +698,8 @@ window.App = window.App || {};
       d.el.style.zIndex = d.orig.zIndex;
     }
     d.el.classList.remove("dragging");
+    const hz = sceneEl("hand-zone");
+    if (hz) hz.style.zIndex = "";
   }
 
   function canAddCard(s, card) {
