@@ -10,6 +10,7 @@ window.App = window.App || {};
   const SUIT_ORDER = ["S", "C", "H", "D"];
   const SUIT_RED = { H: true, D: true };
   const CARD_PATH = "assets/big/cards/";
+  const TARGET_SNAP = 130;
 
   function rankOf(card) {
     return card.slice(0, -1);
@@ -141,6 +142,100 @@ window.App = window.App || {};
     return scenePosOf(sceneEl("table-zone")) || { x: 288, y: 650 };
   }
 
+  function discardPos() {
+    return scenePosOf(sceneEl("discard-pile")) || { x: 522, y: 527 };
+  }
+
+  function tableCardPos(card) {
+    const el = document.querySelector(`.game-scene .t-card[data-card="${esc(card)}"]`);
+    return scenePosOf(el);
+  }
+
+  function floatCard(opts) {
+    const scene = sceneEl("game-scene");
+    if (!scene) return;
+    const el = document.createElement("div");
+    el.className = "float-card";
+    el.innerHTML = opts.back
+      ? `<img src="assets/big/cards/card_bg.png" alt="" draggable="false">`
+      : cardFaceHtml(opts.card);
+    const w = opts.w || 104;
+    const h = opts.h || 148;
+    el.style.width = w + "px";
+    el.style.height = h + "px";
+    el.style.left = opts.srcX - w / 2 + "px";
+    el.style.top = opts.srcY - h / 2 + "px";
+    if (opts.z) el.style.zIndex = opts.z;
+    scene.appendChild(el);
+    const dx = opts.dstX - opts.srcX;
+    const dy = opts.dstY - opts.srcY;
+    const delay = opts.delay || 0;
+    const dur = opts.dur || 460;
+    const rot = opts.rot || 0;
+    const ease = opts.ease || "cubic-bezier(0.25, 0.7, 0.3, 1)";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = `transform ${dur}ms ${ease} ${delay}ms, opacity ${Math.min(260, dur)}ms ease ${delay}ms`;
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+        el.style.opacity = opts.fade ? "0" : "1";
+      });
+    });
+    setTimeout(() => el.remove(), delay + dur + 220);
+  }
+
+  function playBito(cards) {
+    const dest = discardPos();
+    if (!dest) return;
+    let i = 0;
+    cards.forEach((card) => {
+      const src = tableCardPos(card);
+      if (!src) return;
+      floatCard({
+        srcX: src.x,
+        srcY: src.y,
+        dstX: dest.x,
+        dstY: dest.y,
+        back: true,
+        delay: i * 55,
+        dur: 500,
+        rot: -8 + i * 3,
+      });
+      i++;
+    });
+  }
+
+  function nearestTarget(x, y, card, s) {
+    const els = document.querySelectorAll(".game-scene .t-attack.beatable");
+    let best = null;
+    let bestD = Infinity;
+    els.forEach((el) => {
+      const atk = el.dataset.target;
+      if (!beats(card, atk, s.trump_suit)) return;
+      const p = scenePosOf(el);
+      if (!p) return;
+      const d = Math.hypot(p.x - x, p.y - y);
+      if (d < bestD) {
+        bestD = d;
+        best = el;
+      }
+    });
+    return best ? { el: best, dist: bestD } : null;
+  }
+
+  function renderDiscard(s) {
+    const el = sceneEl("discard-pile");
+    if (!el) return;
+    const n = s.discard || 0;
+    const pile = Math.min(n, 5);
+    let html = "";
+    for (let i = 0; i < pile; i++) {
+      html += `<div class="back d${i + 1}"><img src="assets/big/cards/card_bg.png" alt=""></div>`;
+    }
+    if (n > 0) html += `<div class="discard-count">${n}</div>`;
+    el.innerHTML = html;
+    el.classList.toggle("empty", n === 0);
+  }
+
   function flyFromHand(card) {
     const el = document.querySelector(`.game-scene .hand-card[data-card="${esc(card)}"]`);
     const p = scenePosOf(el);
@@ -184,6 +279,30 @@ window.App = window.App || {};
     if (g.target && !s.table.some((p) => p[0] === g.target && p[1] === null)) g.target = null;
     g.prevTurn = s.turn;
 
+    const prevS = g._prevState;
+    g._bito = null;
+    g._takeFly = false;
+    g._takenCards = null;
+    if (prevS && prevS.table.length && !s.table.length) {
+      const prevCards = new Set();
+      prevS.table.forEach((p) => {
+        if (p[0]) prevCards.add(p[0]);
+        if (p[1]) prevCards.add(p[1]);
+      });
+      if (s.discard > prevS.discard) {
+        g._bito = prevCards;
+      } else {
+        g._takeFly = true;
+        const posMap = {};
+        prevCards.forEach((card) => {
+          const p = tableCardPos(card);
+          if (p) posMap[card] = p;
+        });
+        g._takenCards = posMap;
+      }
+    }
+    if (g._bito && g._bito.size) playBito(g._bito);
+
     sceneEl("game-balance").innerHTML = (App.balance != null ? App.balance : "") + ' <span class="bill">▰</span>';
     sceneEl("footer-stats").innerHTML = `<span>0 <b class="coin-dot">●</b></span><span>${App.balance != null ? App.balance : ""} <b class="coin-square">▰</b></span>`;
     sceneEl("deck-count").textContent = s.deck > 0 ? s.deck : "";
@@ -196,16 +315,14 @@ window.App = window.App || {};
 
     renderOpp(s);
     renderMine(s);
-    const prevTable = App.game._prevTable;
-    if (prevTable && prevTable.size && !s.table.length && s.my_cards.length > (App.game._prevHandCount || 0)) {
-      App.game._takeFly = true;
-    }
-    App.game._prevHandCount = s.my_cards.length;
+    renderDiscard(s);
     renderTable(s);
     renderHand(s);
     renderTurn(s);
     initEmojiControls();
-    if (g.deal) startDeal();
+    if (g.deal && !g._dealing) startDeal();
+
+    g._prevState = s;
   }
 
   /* ---------- соперники ---------- */
@@ -230,11 +347,14 @@ window.App = window.App || {};
     return opps;
   }
 
-  function fanBacks(n) {
+  function fanBacks(n, deal, dealFrom) {
     const count = Math.max(0, Math.min(n, 7));
+    const degs = [-38, -25, -13, 0, 13, 25, 38];
     let html = "";
     for (let i = 0; i < count; i++) {
-      html += `<div class="back" style="--d:${100 + i * 70}ms"><img src="assets/big/cards/card_bg.png" alt=""></div>`;
+      const isNew = deal && i >= dealFrom;
+      const cls = isNew ? "back deal" : "back";
+      html += `<div class="${cls}" style="--d:${100 + i * 70}ms;--fr:${degs[i]}deg"><img src="assets/big/cards/card_bg.png" alt=""></div>`;
     }
     return html;
   }
@@ -251,8 +371,15 @@ window.App = window.App || {};
     }
     const isActive = !s.finished && s.active_id === main.id;
     const photo = main.photo ? ` style="background-image:url('${esc(main.photo)}')"` : "";
+    let dealFrom = null;
+    if (App.game.deal) {
+      const prevOpp = App.game._prevOppCards;
+      if (prevOpp == null) dealFrom = 0;
+      else if (main.cards > prevOpp) dealFrom = prevOpp;
+    }
+    App.game._prevOppCards = main.cards;
     slot.innerHTML = `
-      <div class="fan">${fanBacks(main.cards)}</div>
+      <div class="fan">${fanBacks(main.cards, dealFrom != null, dealFrom)}</div>
       <div class="avatar ${main.photo ? "photo" : ""}${isActive ? " turn" : ""}"${photo}>
         <div class="stack${main.ended ? " gray" : ""}">${main.cards}<i></i></div>
         <div class="avatar-label">${esc(main.name)} <span class="star">★</span></div>
@@ -353,7 +480,15 @@ window.App = window.App || {};
     const prevHand = App.game._prevHand;
     const curHand = new Set(cards);
     App.game._prevHand = curHand;
-    const newCards = prevHand ? cards.filter((c) => !prevHand.has(c)) : [];
+
+    let newCards = [];
+    if (!prevHand) {
+      if (App.game.deal) newCards = cards.slice();
+    } else {
+      newCards = cards.filter((c) => !prevHand.has(c));
+    }
+    const dealing = !!(App.game.deal && !App.game._takeFly);
+    const takenMap = App.game._takenCards || {};
     const cardW = n > 7 ? 104 : n > 5 ? 118 : 126;
     const margin = 4;
     const span = 576 - margin * 2 - cardW;
@@ -366,26 +501,28 @@ window.App = window.App || {};
         const cls = ["hand-card"];
         if (App.game.selected === c) cls.push("selected");
         if (!canInteract) cls.push("disabled");
-        if (App.game.deal) cls.push("deal");
+        if (dealing && newCards.indexOf(c) >= 0) cls.push("deal");
         return `<div class="${cls.join(" ")}" data-card="${esc(c)}" data-angle="${angle}"
           style="left:${left}px;top:${top}px;--cw:${cardW}px;z-index:${i + 1};transform:rotate(${angle}deg);--dr:${angle}deg">${cardFaceHtml(c)}</div>`;
       })
       .join("");
 
-    if (newCards.length && !App.game.deal) {
-      const src = App.game._takeFly ? tablePos() : deckPos();
+    if (newCards.length) {
       zone.querySelectorAll(".hand-card").forEach((el) => {
-        if (newCards.indexOf(el.dataset.card) >= 0) {
-          const dest = scenePosOf(el);
-          if (dest) {
-            el.classList.add("fly-in");
-            el.style.setProperty("--fx", src.x - dest.x + "px");
-            el.style.setProperty("--fy", src.y - dest.y + "px");
-          }
+        const c = el.dataset.card;
+        if (newCards.indexOf(c) < 0 || el.classList.contains("deal")) return;
+        el.classList.add("fly-in");
+        let src = deckPos();
+        if (App.game._takeFly && takenMap[c]) {
+          src = takenMap[c];
+        }
+        const dest = scenePosOf(el);
+        if (dest) {
+          el.style.setProperty("--fx", src.x - dest.x + "px");
+          el.style.setProperty("--fy", src.y - dest.y + "px");
         }
       });
     }
-    if (App.game._takeFly) App.game._takeFly = false;
 
     zone.querySelectorAll(".hand-card").forEach((el) => {
       el.addEventListener("pointerdown", (e) => startDrag(e, el));
@@ -446,14 +583,21 @@ window.App = window.App || {};
       d.moved = true;
       dragActive = true;
       const scene = sceneEl("game-scene");
+      const sx = scene._scaleX || 1;
+      const sy = scene._scaleY || 1;
       const rect = d.el.getBoundingClientRect();
       d.ghost = document.createElement("div");
       d.ghost.className = "drag-ghost";
       d.ghost.innerHTML = d.el.innerHTML;
-      d.ghost.style.width = rect.width + "px";
-      d.ghost.style.height = rect.height + "px";
+      d.ghost.style.width = rect.width / sx + "px";
+      d.ghost.style.height = rect.height / sy + "px";
       scene.appendChild(d.ghost);
       d.el.classList.add("dragging");
+      const st = App.game.state;
+      if (st && (st.can_attack || st.can_throw)) {
+        const zone = sceneEl("table-zone");
+        if (zone) zone.classList.add("drop-target");
+      }
     }
     const scene = sceneEl("game-scene");
     const srect = scene.getBoundingClientRect();
@@ -463,10 +607,16 @@ window.App = window.App || {};
     const y = (e.clientY - srect.top) / sy;
     d.ghost.style.left = x - d.ghost.offsetWidth / 2 + "px";
     d.ghost.style.top = y - d.ghost.offsetHeight / 2 + "px";
-    const under = document.elementFromPoint(e.clientX, e.clientY);
-    const target = under ? under.closest(".t-attack") : null;
+    const st = App.game.state;
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
-    if (target) target.classList.add("drag-over");
+    d._nearest = null;
+    if (st && st.can_defend) {
+      const nt = nearestTarget(x, y, d.card, st);
+      if (nt) {
+        d._nearest = nt;
+        nt.el.classList.add("drag-over");
+      }
+    }
   }
 
   function onDragUp(e) {
@@ -477,6 +627,8 @@ window.App = window.App || {};
       dragActive = false;
     }, 80);
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
+    const zoneEl = sceneEl("table-zone");
+    if (zoneEl) zoneEl.classList.remove("drop-target");
     d.el.classList.remove("dragging");
     if (d.ghost) {
       d.ghost.remove();
@@ -488,21 +640,32 @@ window.App = window.App || {};
     if (!s || s.finished) return;
     const card = d.card;
     const under = document.elementFromPoint(e.clientX, e.clientY);
-    const hoverCard = under ? under.closest(".t-attack") : null;
-    const onTable = under ? under.closest(".table-zone") : null;
-    if (!onTable) return;
 
-    if (s.can_defend && hoverCard && hoverCard.classList.contains("beatable")) {
-      const atk = hoverCard.dataset.target;
-      if (beats(card, atk, s.trump_suit)) {
-        flyFromHand(card);
-        send({ type: "beat", attack: atk, defend: card });
-        clearSel();
+    if (s.can_defend) {
+      const hoverCard = under ? under.closest(".t-attack.beatable") : null;
+      let targetEl = null;
+      if (hoverCard) {
+        targetEl = hoverCard;
+      } else if (d._nearest && d._nearest.dist <= TARGET_SNAP) {
+        targetEl = d._nearest.el;
+      }
+      if (targetEl) {
+        const atk = targetEl.dataset.target;
+        if (beats(card, atk, s.trump_suit)) {
+          flyFromHand(card);
+          send({ type: "beat", attack: atk, defend: card });
+          clearSel();
+        } else {
+          App.toast("Эта карта не бьёт выбранную");
+        }
       } else {
-        App.toast("Эта карта не бьёт выбранную");
+        App.toast("Киньте карту к той, которую хотите побить");
       }
       return;
     }
+    const onTable = under ? under.closest(".table-zone") : null;
+    if (!onTable) return;
+
     if (s.can_attack || s.can_throw) {
       if (canAddCard(s, card)) {
         flyFromHand(card);
@@ -511,10 +674,6 @@ window.App = window.App || {};
       } else {
         App.toast("Эту карту нельзя подложить");
       }
-      return;
-    }
-    if (s.can_defend) {
-      App.toast("Нажмите «Взять», чтобы забрать карты");
       return;
     }
     App.toast("Сейчас не ваш ход");
@@ -626,34 +785,42 @@ window.App = window.App || {};
   function startDeal() {
     const scene = sceneEl("game-scene");
     if (!scene) return;
+    const g = App.game;
+    if (g._dealing) return;
+    g._dealing = true;
     scene.classList.add("dealing");
+    const src = deckPos();
+    const myEls = Array.prototype.slice.call(scene.querySelectorAll(".hand-card.deal"));
+    const oppEls = Array.prototype.slice.call(scene.querySelectorAll(".fan .back.deal"));
+    const step = 90;
+    const total = Math.max(myEls.length, oppEls.length);
+    const anims = [];
+    for (let i = 0; i < total; i++) {
+      if (myEls[i]) anims.push({ el: myEls[i], d: i * step });
+      if (oppEls[i]) anims.push({ el: oppEls[i], d: i * step + step / 2 });
+    }
+    const srect = scene.getBoundingClientRect();
     const sx = scene._scaleX || 1;
     const sy = scene._scaleY || 1;
-    const srect = scene.getBoundingClientRect();
-    let dx0 = 30;
-    let dy0 = 440;
-    const deckEl = document.querySelector(".game-scene .deck");
-    if (deckEl && deckEl.getBoundingClientRect().width > 0) {
-      const r = deckEl.getBoundingClientRect();
-      dx0 = (r.left + r.width / 2 - srect.left) / sx;
-      dy0 = (r.top + r.height / 2 - srect.top) / sy;
-    }
-    const cards = Array.prototype.slice.call(scene.querySelectorAll(".hand-card.deal"));
-    cards.forEach((el, i) => {
+    anims.forEach((a) => {
+      const el = a.el;
       const r = el.getBoundingClientRect();
       if (!r.width) return;
       const cx = (r.left + r.width / 2 - srect.left) / sx;
       const cy = (r.top + r.height / 2 - srect.top) / sy;
-      el.style.setProperty("--dx", dx0 - cx + "px");
-      el.style.setProperty("--dy", dy0 - cy + "px");
-      el.style.setProperty("--d", i * 60 + "ms");
+      el.style.setProperty("--dx", src.x - cx + "px");
+      el.style.setProperty("--dy", src.y - cy + "px");
+      el.style.setProperty("--d", a.d + "ms");
     });
-    const total = 500 + cards.length * 60 + 300;
+    const totalMs = total * step + 780;
     setTimeout(() => {
       scene.classList.remove("dealing");
-      cards.forEach((el) => el.classList.remove("deal"));
-      if (App.game) App.game.deal = false;
-    }, total);
+      scene.querySelectorAll(".hand-card.deal, .fan .back.deal").forEach((el) => el.classList.remove("deal"));
+      if (App.game) {
+        App.game.deal = false;
+        App.game._dealing = false;
+      }
+    }, totalMs);
   }
 
   /* ---------- эмодзи ---------- */
