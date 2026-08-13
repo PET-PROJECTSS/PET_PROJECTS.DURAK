@@ -526,9 +526,6 @@ window.App = window.App || {};
 
     zone.querySelectorAll(".hand-card").forEach((el) => {
       el.addEventListener("pointerdown", (e) => startDrag(e, el));
-      el.addEventListener("pointermove", onDragMove);
-      el.addEventListener("pointerup", onDragUp);
-      el.addEventListener("pointercancel", onDragUp);
       el.addEventListener("click", () => {
         if (!dragActive) onHandClick(s, el.dataset.card);
       });
@@ -560,13 +557,18 @@ window.App = window.App || {};
     if (e.button !== 0) return;
     const s = App.game.state;
     if (!s || s.finished) return;
+    const scene = sceneEl("game-scene");
+    const sx = (scene && scene._scaleX) || 1;
+    const r = cardEl.getBoundingClientRect();
     App._drag = {
       card: cardEl.dataset.card,
       startX: e.clientX,
       startY: e.clientY,
+      grabDX: (e.clientX - r.left) / sx,
+      grabDY: (e.clientY - r.top) / sx,
       moved: false,
-      ghost: null,
       el: cardEl,
+      orig: null,
     };
     try {
       cardEl.setPointerCapture(e.pointerId);
@@ -576,37 +578,37 @@ window.App = window.App || {};
   function onDragMove(e) {
     const d = App._drag;
     if (!d) return;
+    const scene = sceneEl("game-scene");
+    if (!scene) return;
+    const srect = scene.getBoundingClientRect();
+    const sx = scene._scaleX || 1;
+    const sy = scene._scaleY || 1;
+    const x = (e.clientX - srect.left) / sx;
+    const y = (e.clientY - srect.top) / sy;
     if (!d.moved) {
       const dx = e.clientX - d.startX;
       const dy = e.clientY - d.startY;
       if (Math.hypot(dx, dy) < 8) return;
       d.moved = true;
       dragActive = true;
-      const scene = sceneEl("game-scene");
-      const sx = scene._scaleX || 1;
-      const sy = scene._scaleY || 1;
-      const rect = d.el.getBoundingClientRect();
-      d.ghost = document.createElement("div");
-      d.ghost.className = "drag-ghost";
-      d.ghost.innerHTML = d.el.innerHTML;
-      d.ghost.style.width = rect.width / sx + "px";
-      d.ghost.style.height = rect.height / sy + "px";
-      scene.appendChild(d.ghost);
-      d.el.classList.add("dragging");
+      const el = d.el;
+      d.orig = {
+        left: el.style.left,
+        top: el.style.top,
+        zIndex: el.style.zIndex,
+        transform: el.style.transform,
+      };
       const st = App.game.state;
       if (st && (st.can_attack || st.can_throw)) {
         const zone = sceneEl("table-zone");
         if (zone) zone.classList.add("drop-target");
       }
     }
-    const scene = sceneEl("game-scene");
-    const srect = scene.getBoundingClientRect();
-    const sx = scene._scaleX || 1;
-    const sy = scene._scaleY || 1;
-    const x = (e.clientX - srect.left) / sx;
-    const y = (e.clientY - srect.top) / sy;
-    d.ghost.style.left = x - d.ghost.offsetWidth / 2 + "px";
-    d.ghost.style.top = y - d.ghost.offsetHeight / 2 + "px";
+    d.el.style.left = x - (d.grabDX || d.el.offsetWidth / 2) + "px";
+    d.el.style.top = y - (d.grabDY || d.el.offsetHeight / 2) + "px";
+    d.el.style.transform = "rotate(6deg) scale(1.05)";
+    d.el.style.zIndex = 90;
+    d.el.classList.add("dragging");
     const st = App.game.state;
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
     d._nearest = null;
@@ -629,54 +631,65 @@ window.App = window.App || {};
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
     const zoneEl = sceneEl("table-zone");
     if (zoneEl) zoneEl.classList.remove("drop-target");
-    d.el.classList.remove("dragging");
-    if (d.ghost) {
-      d.ghost.remove();
-      d.ghost = null;
-    }
-    if (!d.moved) return;
 
     const s = App.game.state;
-    if (!s || s.finished) return;
     const card = d.card;
-    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const wasMoved = d.moved;
 
-    if (s.can_defend) {
-      const hoverCard = under ? under.closest(".t-attack.beatable") : null;
-      let targetEl = null;
-      if (hoverCard) {
-        targetEl = hoverCard;
-      } else if (d._nearest && d._nearest.dist <= TARGET_SNAP) {
-        targetEl = d._nearest.el;
-      }
-      if (targetEl) {
-        const atk = targetEl.dataset.target;
-        if (beats(card, atk, s.trump_suit)) {
-          flyFromHand(card);
-          send({ type: "beat", attack: atk, defend: card });
-          clearSel();
+    if (wasMoved && s && !s.finished) flyFromHand(card);
+
+    let sent = false;
+
+    if (wasMoved && s && !s.finished) {
+      if (s.can_defend) {
+        let targetEl = null;
+        document.querySelectorAll(".game-scene .t-attack.beatable").forEach((el) => {
+          if (targetEl) return;
+          const r = el.getBoundingClientRect();
+          if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+            targetEl = el;
+          }
+        });
+        if (!targetEl && d._nearest && d._nearest.dist <= TARGET_SNAP) targetEl = d._nearest.el;
+        if (targetEl) {
+          const atk = targetEl.dataset.target;
+          if (beats(card, atk, s.trump_suit)) {
+            sent = true;
+            send({ type: "beat", attack: atk, defend: card });
+            clearSel();
+          } else {
+            App.toast("Эта карта не бьёт выбранную");
+          }
         } else {
-          App.toast("Эта карта не бьёт выбранную");
+          App.toast("Киньте карту к той, которую хотите побить");
         }
       } else {
-        App.toast("Киньте карту к той, которую хотите побить");
+        const zr = zoneEl ? zoneEl.getBoundingClientRect() : null;
+        const onTable =
+          zr && e.clientX >= zr.left && e.clientX <= zr.right && e.clientY >= zr.top && e.clientY <= zr.bottom;
+        if (onTable) {
+          if (s.can_attack || s.can_throw) {
+            if (canAddCard(s, card)) {
+              sent = true;
+              send({ type: "attack", card });
+              clearSel();
+            } else {
+              App.toast("Эту карту нельзя подложить");
+            }
+          } else {
+            App.toast("Сейчас не ваш ход");
+          }
+        }
       }
-      return;
     }
-    const onTable = under ? under.closest(".table-zone") : null;
-    if (!onTable) return;
 
-    if (s.can_attack || s.can_throw) {
-      if (canAddCard(s, card)) {
-        flyFromHand(card);
-        send({ type: "attack", card });
-        clearSel();
-      } else {
-        App.toast("Эту карту нельзя подложить");
-      }
-      return;
+    if (!sent && d.orig) {
+      d.el.style.left = d.orig.left;
+      d.el.style.top = d.orig.top;
+      d.el.style.transform = d.orig.transform;
+      d.el.style.zIndex = d.orig.zIndex;
     }
-    App.toast("Сейчас не ваш ход");
+    d.el.classList.remove("dragging");
   }
 
   function canAddCard(s, card) {
@@ -1033,4 +1046,8 @@ window.App = window.App || {};
   };
 
   App.leaveGame = leaveGame;
+
+  document.addEventListener("pointermove", onDragMove);
+  document.addEventListener("pointerup", onDragUp);
+  document.addEventListener("pointercancel", onDragUp);
 })();
