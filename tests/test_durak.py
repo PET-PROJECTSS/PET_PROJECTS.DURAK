@@ -41,9 +41,47 @@ class GameTests(unittest.TestCase):
         defender = g.defender()
         g.take(defender)
         self.assertEqual(g.table, [])
-        self.assertEqual(g.attacker(), defender)
+        self.assertEqual(g.attacker(), atk)
         self.assertGreaterEqual(len(g.hands[defender]), before)
         self.assertEqual(g.turn, "attack")
+
+    def test_take_attacker_continues(self):
+        g = DurakGame(["a", "b"], first_attacker="a")
+        g.hands["a"] = [Card("7S"), Card("9D")]
+        g.hands["b"] = [Card("8C")]
+        g.attack("a", "7S")
+        g.take("b")
+        self.assertEqual(g.attacker(), "a")
+
+    def test_after_beat_two_players_defender_attacks(self):
+        g = DurakGame(["a", "b"], first_attacker="a")
+        g.hands["a"] = [Card("7S"), Card("9D")]
+        g.hands["b"] = [Card("8S")]
+        g.attack("a", "7S")
+        g.beat("b", "7S", "8S")
+        self.assertEqual(g.turn, "attack")
+        g.done("a")
+        self.assertEqual(g.attacker(), "b")
+
+    def test_throw_second_card_before_beat(self):
+        g = DurakGame(["a", "b"], first_attacker="a")
+        g.hands["a"] = [Card("7S"), Card("7H"), Card("9D")]
+        g.hands["b"] = [Card("6C"), Card("8C")]
+        g.attack("a", "7S")
+        self.assertEqual(g.turn, "defend")
+        self.assertTrue(g.public_state("a")["can_throw"])
+        g.attack("a", "7H")
+        self.assertEqual(len(g.table), 2)
+        self.assertEqual(g.pending, 2)
+        self.assertEqual(g.turn, "defend")
+
+    def test_defender_cannot_throw_while_defending(self):
+        g = DurakGame(["a", "b"], first_attacker="a")
+        g.hands["a"] = [Card("7S"), Card("9D")]
+        g.hands["b"] = [Card("7C"), Card("8C")]
+        g.attack("a", "7S")
+        with self.assertRaises(DurakError):
+            g.attack("b", "7C")
 
     def test_wrong_turn_raises(self):
         random.seed(7)
@@ -233,7 +271,7 @@ class GameTests(unittest.TestCase):
         g.attack("a", "9D")
         g.transfer("b", "9C")
         g.take("c")
-        self.assertEqual(g.attacker(), "c")
+        self.assertEqual(g.attacker(), "a")
         self.assertEqual(g.transferred, set())
         self.assertEqual(g.table, [])
         for code in ("8C", "9D", "9C"):
@@ -243,10 +281,10 @@ class GameTests(unittest.TestCase):
         g = DurakGame(["a", "b", "c"], first_attacker="a", mode="perevodnoi")
         g.hands["a"] = [Card("9D")]
         g.hands["b"] = [Card("9C")]
-        g.hands["c"] = [Card("10C"), Card("QC")]
+        g.hands["c"] = [Card("10D"), Card("QC")]
         g.attack("a", "9D")
         g.transfer("b", "9C")
-        g.beat("c", "9D", "10C")
+        g.beat("c", "9D", "10D")
         g.beat("c", "9C", "QC")
         self.assertEqual(g.pending, 0)
         self.assertEqual(g.turn, "attack")

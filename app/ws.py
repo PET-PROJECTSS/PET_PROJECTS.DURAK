@@ -196,6 +196,7 @@ async def ws_handler(request):
                         pass
                 manager.remove(room.id)
             else:
+                room.ready.clear()
                 try:
                     await broadcast(room)
                 except Exception:

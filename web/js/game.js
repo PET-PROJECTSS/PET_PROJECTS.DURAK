@@ -153,17 +153,16 @@ window.App = window.App || {};
     const w = screen.clientWidth || 0;
     const h = screen.clientHeight || 0;
     if (!w || !h) return;
-    const sx = w / 576;
-    const sy = h / 1280;
+    const s = Math.min(w / 576, h / 1280);
     const scene = sceneEl("game-scene");
     if (scene) {
-      scene.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
-      scene._scaleX = sx;
-      scene._scaleY = sy;
+      scene.style.transform = `translate(-50%, -50%) scale(${s}, ${s})`;
+      scene._scaleX = s;
+      scene._scaleY = s;
     }
     const wait = sceneEl("waiting-screen");
     if (wait) {
-      wait.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+      wait.style.transform = `translate(-50%, -50%) scale(${s}, ${s})`;
     }
   }
 
@@ -354,18 +353,21 @@ window.App = window.App || {};
     const curHand = new Set(cards);
     App.game._prevHand = curHand;
     const newCards = prevHand ? cards.filter((c) => !prevHand.has(c)) : [];
+    const cardW = n > 7 ? 104 : n > 5 ? 120 : 130;
+    const margin = 4;
+    const span = 576 - margin * 2 - cardW;
     zone.innerHTML = cards
       .map((c, i) => {
         const t = n > 1 ? i / (n - 1) : 0;
-        const left = 6 + 434 * t;
-        const top = 74 - 4 * t;
-        const angle = -6 + 9 * t;
+        const left = margin + span * t;
+        const top = 74 - 10 * Math.sin(Math.PI * t);
+        const angle = -6 + 12 * t;
         const cls = ["hand-card"];
         if (App.game.selected === c) cls.push("selected");
         if (!canInteract) cls.push("disabled");
         if (App.game.deal) cls.push("deal");
         return `<div class="${cls.join(" ")}" data-card="${esc(c)}" data-angle="${angle}"
-          style="left:${left}px;top:${top}px;z-index:${i + 1};transform:rotate(${angle}deg);--dr:${angle}deg">${cardFaceHtml(c)}</div>`;
+          style="left:${left}px;top:${top}px;--cw:${cardW}px;z-index:${i + 1};transform:rotate(${angle}deg);--dr:${angle}deg">${cardFaceHtml(c)}</div>`;
       })
       .join("");
 
@@ -520,7 +522,8 @@ window.App = window.App || {};
   function canAddCard(s, card) {
     if (!card) return false;
     if (!s.table.length) return true;
-    if (s.table.length >= Math.min(6, s.opponent_cards)) return false;
+    const max = Math.min(6, s.defender_cards != null ? s.defender_cards : s.opponent_cards);
+    if (s.table.length >= max) return false;
     const ranks = new Set();
     s.table.forEach((p) => {
       ranks.add(rankOf(p[0]));
@@ -559,9 +562,6 @@ window.App = window.App || {};
     } else if (s.turn === "attack") {
       const allBeat = s.table.length && !s.table.some((p) => p[1] === null);
       if (s.i_am_attacker && allBeat) html.push(`<button class="big-btn" id="act-done">Бито</button>`);
-      if (s.table.length && (s.can_attack || s.can_throw) && sel && canAddCard(s, sel)) {
-        html.push(`<button class="big-btn ghost" id="act-throw">Подложить</button>`);
-      }
       if (!s.table.length && s.can_attack && sel) html.push(`<button class="big-btn" id="act-attack">Ваш ход</button>`);
       if (!html.length) html.push(`<div class="turn-text">${turnStatus(s)}</div>`);
     } else if (s.can_defend) {
@@ -569,6 +569,10 @@ window.App = window.App || {};
       if (s.mode === "perevodnoi" && s.can_transfer && sel && s.table.length && rankOf(sel) === rankOf(s.table[0][0])) {
         html.push(`<button class="big-btn ghost" id="act-transfer">Перевести</button>`);
       }
+    }
+
+    if (s.table.length && (s.can_attack || s.can_throw) && sel && canAddCard(s, sel)) {
+      html.push(`<button class="big-btn ghost" id="act-throw">Подложить</button>`);
     }
 
     zone.innerHTML = html.join("");

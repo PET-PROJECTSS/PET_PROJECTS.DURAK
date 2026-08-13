@@ -170,8 +170,6 @@ class DurakGame:
     def attack(self, pid: str, card_code: str) -> None:
         if self.finished:
             raise DurakError("Игра окончена")
-        if self.turn != "attack":
-            raise DurakError("Сейчас не ваш ход")
         if not self._can_throw_in(pid):
             raise DurakError("Сейчас ходит соперник")
         card = self._card_from_hand(pid, card_code)
@@ -251,7 +249,7 @@ class DurakGame:
                     count += 1
         self.table = []
         self.pending = 0
-        self._finish_round(pid)
+        self._finish_round(self.attacker())
         self.last_event = ("take", count)
 
     def done(self, pid: str) -> None:
@@ -266,7 +264,10 @@ class DurakGame:
         if self.pending > 0:
             raise DurakError("Сначала должны быть побиты все карты")
         defender = self.defender()
-        next_attacker = self.order[(self.order.index(defender) + 1) % self.n]
+        if self.n == 2:
+            next_attacker = defender
+        else:
+            next_attacker = self.order[(self.order.index(defender) + 1) % self.n]
         self._finish_round(next_attacker)
         self.last_event = ("done",)
 
@@ -317,7 +318,7 @@ class DurakGame:
             and self._next_defender_candidate(viewer_id) is not None
             and any(c.rank == self.table[0][0].rank for c in self.hands.get(viewer_id, []))
         )
-        can_throw = not self.finished and self.turn == "attack" and self._can_throw_in(viewer_id)
+        can_throw = not self.finished and self._can_throw_in(viewer_id)
         return {
             "deck": self._cards_left(),
             "trump": self.trump_card.code() if self.trump_card else None,
@@ -349,4 +350,5 @@ class DurakGame:
             "last_event": self.last_event,
             "opponent": opponent,
             "opponent_cards": len(self.hands[opponent]) if opponent else 0,
+            "defender_cards": len(self.hands[self.defender()]),
         }

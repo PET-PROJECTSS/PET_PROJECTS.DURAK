@@ -77,6 +77,8 @@ class RoomManager:
     def add_player(self, room: Room, player: dict) -> str:
         if len(room.players) >= room.max and player["id"] not in room.players:
             raise ValueError("Комната заполнена")
+        if room.status == "waiting":
+            room.ready.clear()
         room.players[player["id"]] = player
         token = uuid.uuid4().hex
         room.tokens[token] = player["id"]
