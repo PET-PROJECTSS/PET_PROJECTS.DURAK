@@ -118,7 +118,14 @@ window.App = window.App || {};
 
   function scenePosOf(el) {
     if (!el) return null;
-    const r = el.getBoundingClientRect();
+    let r = el.getBoundingClientRect();
+    if (!r.width && el.querySelector) {
+      const face = el.querySelector(".cardface");
+      if (face) {
+        el = face;
+        r = face.getBoundingClientRect();
+      }
+    }
     if (!r.width) return null;
     const scene = sceneEl("game-scene");
     const sr = scene.getBoundingClientRect();
@@ -583,8 +590,6 @@ window.App = window.App || {};
     const srect = scene.getBoundingClientRect();
     const sx = scene._scaleX || 1;
     const sy = scene._scaleY || 1;
-    const x = (e.clientX - srect.left) / sx;
-    const y = (e.clientY - srect.top) / sy;
     if (!d.moved) {
       const dx = e.clientX - d.startX;
       const dy = e.clientY - d.startY;
@@ -598,14 +603,11 @@ window.App = window.App || {};
         zIndex: el.style.zIndex,
         transform: el.style.transform,
       };
-      const st = App.game.state;
-      if (st && (st.can_attack || st.can_throw)) {
-        const zone = sceneEl("table-zone");
-        if (zone) zone.classList.add("drop-target");
-      }
     }
-    d.el.style.left = x - (d.grabDX || d.el.offsetWidth / 2) + "px";
-    d.el.style.top = y - (d.grabDY || d.el.offsetHeight / 2) + "px";
+    const hz = sceneEl("hand-zone");
+    const hr = (hz && hz.getBoundingClientRect()) || srect;
+    d.el.style.left = (e.clientX - hr.left) / sx - d.grabDX + "px";
+    d.el.style.top = (e.clientY - hr.top) / sy - d.grabDY + "px";
     d.el.style.transform = "rotate(6deg) scale(1.05)";
     d.el.style.zIndex = 90;
     d.el.classList.add("dragging");
@@ -613,10 +615,13 @@ window.App = window.App || {};
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
     d._nearest = null;
     if (st && st.can_defend) {
-      const nt = nearestTarget(x, y, d.card, st);
-      if (nt) {
-        d._nearest = nt;
-        nt.el.classList.add("drag-over");
+      const c = scenePosOf(d.el);
+      if (c) {
+        const nt = nearestTarget(c.x, c.y, d.card, st);
+        if (nt) {
+          d._nearest = nt;
+          nt.el.classList.add("drag-over");
+        }
       }
     }
   }
@@ -629,55 +634,56 @@ window.App = window.App || {};
       dragActive = false;
     }, 80);
     document.querySelectorAll(".game-scene .t-attack.drag-over").forEach((el) => el.classList.remove("drag-over"));
-    const zoneEl = sceneEl("table-zone");
-    if (zoneEl) zoneEl.classList.remove("drop-target");
 
     const s = App.game.state;
     const card = d.card;
     const wasMoved = d.moved;
-
-    if (wasMoved && s && !s.finished) flyFromHand(card);
+    const scene = sceneEl("game-scene");
+    const srect = scene.getBoundingClientRect();
+    const sx = scene._scaleX || 1;
+    const sy = scene._scaleY || 1;
+    const dropP = wasMoved && s && !s.finished ? scenePosOf(d.el) : null;
+    if (dropP) App.game._fly = { card, x: dropP.x, y: dropP.y };
 
     let sent = false;
 
-    if (wasMoved && s && !s.finished) {
+    if (dropP) {
       if (s.can_defend) {
         let targetEl = null;
+        let targetDist = Infinity;
         document.querySelectorAll(".game-scene .t-attack.beatable").forEach((el) => {
-          if (targetEl) return;
-          const r = el.getBoundingClientRect();
-          if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+          const atk = el.dataset.target;
+          if (!beats(card, atk, s.trump_suit)) return;
+          const c = scenePosOf(el);
+          if (!c) return;
+          const dist = Math.hypot(c.x - dropP.x, c.y - dropP.y);
+          if (dist < targetDist) {
+            targetDist = dist;
             targetEl = el;
           }
         });
-        if (!targetEl && d._nearest && d._nearest.dist <= TARGET_SNAP) targetEl = d._nearest.el;
-        if (targetEl) {
+        if (targetEl && targetDist <= TARGET_SNAP) {
           const atk = targetEl.dataset.target;
-          if (beats(card, atk, s.trump_suit)) {
-            sent = true;
-            send({ type: "beat", attack: atk, defend: card });
-            clearSel();
-          } else {
-            App.toast("Эта карта не бьёт выбранную");
-          }
-        } else {
-          App.toast("Киньте карту к той, которую хотите побить");
+          sent = true;
+          send({ type: "beat", attack: atk, defend: card });
+          clearSel();
         }
       } else {
+        const zoneEl = sceneEl("table-zone");
         const zr = zoneEl ? zoneEl.getBoundingClientRect() : null;
         const onTable =
-          zr && e.clientX >= zr.left && e.clientX <= zr.right && e.clientY >= zr.top && e.clientY <= zr.bottom;
-        if (onTable) {
-          if (s.can_attack || s.can_throw) {
-            if (canAddCard(s, card)) {
-              sent = true;
-              send({ type: "attack", card });
-              clearSel();
-            } else {
-              App.toast("Эту карту нельзя подложить");
-            }
+          zr &&
+          dropP.x >= (zr.left - srect.left) / sx &&
+          dropP.x <= (zr.right - srect.left) / sx &&
+          dropP.y >= (zr.top - srect.top) / sy &&
+          dropP.y <= (zr.bottom - srect.top) / sy;
+        if (onTable && (s.can_attack || s.can_throw)) {
+          if (canAddCard(s, card)) {
+            sent = true;
+            send({ type: "attack", card });
+            clearSel();
           } else {
-            App.toast("Сейчас не ваш ход");
+            App.toast("Эту карту нельзя подложить");
           }
         }
       }
