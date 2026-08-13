@@ -25,6 +25,7 @@ window.App = window.App || {};
       ? `<span class="person-icon tg-avatar-slot">${App.tgAvatarHtml(me.photo, 88)}</span>`
       : personIcon;
     const balance = App.balance != null ? App.balance : 0;
+    const fmtMoney = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     const menuCells = `
       <div class="cell"><div class="tournament-icon"></div><div class="text">Турниры</div></div>
       <div class="cell"><div class="new-badge">NEW!</div><div class="icon">i</div><div class="text">Новости</div></div>
@@ -44,8 +45,8 @@ window.App = window.App || {};
             <div class="small-stat">89<div class="grade">+ +</div></div>
           </div>
           <div class="currency">
-            <div class="money-line"><span>${balance}</span><span class="coin">🪙</span><button class="btn-plus" type="button">+</button></div>
-            <div class="money-line"><span>5 498</span><span class="cash">💵</span><button class="btn-plus" type="button">+</button></div>
+            <div class="money-line"><span>0</span><span class="coin">🪙</span><button class="btn-plus" type="button">+</button></div>
+            <div class="money-line"><span>${fmtMoney(balance)}</span><span class="cash">💵</span><button class="btn-plus" type="button">+</button></div>
           </div>
         </div>
       </header>
@@ -199,7 +200,7 @@ window.App = window.App || {};
       } catch (e) {}
     }
 
-    pollTimer = setInterval(refresh, 3000);
+    pollTimer = setInterval(refresh, 1000);
 
     async function joinRoom(id, isPrivate) {
       const payload = { init_data: App.initData, guest_name: (App.me && App.me.name) || "Гость" };

@@ -6,7 +6,9 @@ import config
 
 
 class WalletStore:
-    START_BALANCE = 10000
+    START_BALANCE = 5000
+    OLD_START_BALANCE = 10000
+    _VERSION = "2"
 
     def __init__(self, path: Optional[str] = None):
         self.path = path or config.WALLET_DB or str(Path(config.BASE_DIR) / "wallets.db")
@@ -25,6 +27,23 @@ class WalletStore:
                 " pid TEXT PRIMARY KEY,"
                 " balance INTEGER NOT NULL DEFAULT 0)"
             )
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS meta ("
+                " key TEXT PRIMARY KEY,"
+                " value TEXT)"
+            )
+            row = conn.execute(
+                "SELECT value FROM meta WHERE key='wallet_version'"
+            ).fetchone()
+            if row is None:
+                conn.execute(
+                    "UPDATE wallets SET balance=? WHERE balance=?",
+                    (self.START_BALANCE, self.OLD_START_BALANCE),
+                )
+                conn.execute(
+                    "INSERT INTO meta(key, value) VALUES('wallet_version', ?)",
+                    (self._VERSION,),
+                )
             conn.commit()
         finally:
             conn.close()

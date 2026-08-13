@@ -7,6 +7,7 @@ window.App = window.App || {};
   const RANK_VAL = {};
   RANKS.forEach((r, i) => (RANK_VAL[r] = i));
   const SUIT_IMG = { S: "piki", C: "kresti", H: "chervi", D: "bubni" };
+  const SUIT_ORDER = ["S", "C", "H", "D"];
   const SUIT_RED = { H: true, D: true };
   const CARD_PATH = "assets/big/cards/";
 
@@ -19,6 +20,18 @@ window.App = window.App || {};
   function beats(def, atk, trump) {
     if (suitOf(def) === suitOf(atk)) return RANK_VAL[rankOf(def)] > RANK_VAL[rankOf(atk)];
     return suitOf(def) === trump;
+  }
+
+  function sortHand(cards, trump) {
+    return (cards || []).slice().sort((a, b) => {
+      const ta = suitOf(a) === trump;
+      const tb = suitOf(b) === trump;
+      if (ta !== tb) return ta ? 1 : -1;
+      if (ta) return RANK_VAL[rankOf(a)] - RANK_VAL[rankOf(b)];
+      const sa = SUIT_ORDER.indexOf(suitOf(a));
+      const sb = SUIT_ORDER.indexOf(suitOf(b));
+      return sa !== sb ? sa - sb : RANK_VAL[rankOf(a)] - RANK_VAL[rankOf(b)];
+    });
   }
 
   function cardImg(card) {
@@ -331,7 +344,7 @@ window.App = window.App || {};
 
   function renderHand(s) {
     const zone = sceneEl("hand-zone");
-    const cards = s.my_cards;
+    const cards = sortHand(s.my_cards, s.trump_suit);
     const n = cards.length;
     const canInteract = !s.finished && (s.can_attack || s.can_defend || s.can_throw);
     const prevHand = App.game._prevHand;

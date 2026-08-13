@@ -80,7 +80,7 @@ async def me_handler(request):
 
 
 async def rooms_handler(request):
-    rooms = [r.summary() for r in manager.list()]
+    rooms = [r.summary() for r in manager.list() if r.status != "playing"]
     rooms.sort(key=lambda r: r["created"])
     return web.json_response({"ok": True, "rooms": rooms})
 
