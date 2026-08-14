@@ -70,6 +70,7 @@ class DurakGame:
         mode: str = MODE_CLASSIC,
         throw_all: bool = False,
         deck_size: int = 36,
+        shulers: bool = False,
     ):
         if len(player_ids) < 2:
             raise DurakError("Нужно минимум 2 игрока")
@@ -81,6 +82,7 @@ class DurakGame:
         self.n = len(self.order)
         self.mode = mode
         self.throw_all = bool(throw_all)
+        self.shulers = bool(shulers)
         self.deck_size = deck_size
         self.ranks = {24: RANKS_24, 36: RANKS_36, 52: RANKS_52}[deck_size]
         self.hands: Dict[str, List[Card]] = {p: [] for p in self.order}
@@ -90,6 +92,7 @@ class DurakGame:
         self.discard: List[Card] = []
         self.attacker_idx = self.order.index(first_attacker) if first_attacker else random.randrange(self.n)
         self.table: List[List[Optional[Card]]] = []
+        self.beats_illegal: List[bool] = []
         self.pending = 0
         self.turn = "attack"
         self.ended: List[str] = []
@@ -167,6 +170,13 @@ class DurakGame:
                 return pair
         raise DurakError("Такой карты нет на столе")
 
+    def _pair_index(self, attack_code: str) -> int:
+        code = attack_code.upper()
+        for i, pair in enumerate(self.table):
+            if pair[0] and pair[0].code() == code:
+                return i
+        raise DurakError("Такой карты нет на столе")
+
     def attack(self, pid: str, card_code: str) -> None:
         if self.finished:
             raise DurakError("Игра окончена")
@@ -186,6 +196,7 @@ class DurakGame:
                 raise DurakError("Подкидывать можно только карты уже лежащих достоинств")
         self.hands[pid].remove(card)
         self.table.append([card, None])
+        self.beats_illegal.append(False)
         self.pending += 1
         self.turn = "defend"
         self.last_event = ("attack", card.code())
@@ -199,16 +210,23 @@ class DurakGame:
             raise DurakError("Сейчас не ваша очередь")
         if pid != self.defender():
             raise DurakError("Сейчас не ваша очередь")
-        if len(self.table) != 1 or self.table[0][1] is not None or self.pending != 1:
-            raise DurakError("Переводить можно только первую неотбитую карту")
+        if not self.table:
+            raise DurakError("Нет карт для перевода")
+        for _, defend in self.table:
+            if defend is not None:
+                raise DurakError("Переводить можно только неотбитые карты")
+        rank = self.table[0][0].rank
+        if any(a.rank != rank for a, _ in self.table):
+            raise DurakError("Переводить можно только карты одного достоинства")
         card = self._card_from_hand(pid, card_code)
-        if card.rank != self.table[0][0].rank:
+        if card.rank != rank:
             raise DurakError("Переводить можно только картой того же достоинства")
         nxt = self._next_defender_candidate(pid)
         if nxt is None:
             raise DurakError("Перевести больше некому — отбейте или берите")
         self.hands[pid].remove(card)
         self.table.append([card, None])
+        self.beats_illegal.append(False)
         self.pending += 1
         self.transferred.add(pid)
         self.last_event = ("transfer", card.code())
@@ -221,16 +239,43 @@ class DurakGame:
         if pid != self.defender():
             raise DurakError("Сейчас не ваша очередь бить")
         defend = self._card_from_hand(pid, defend_code)
-        pair = self._pair_for(attack_code)
+        pair_idx = self._pair_index(attack_code)
+        pair = self.table[pair_idx]
         attack = pair[0]
-        if not defend.beats(attack, self.trump):
+        illegal = not defend.beats(attack, self.trump)
+        if illegal and not self.shulers:
             raise DurakError(f"{defend.code()} не бьёт {attack.code()}")
         self.hands[pid].remove(defend)
         pair[1] = defend
+        self.beats_illegal[pair_idx] = illegal
         self.pending -= 1
         if self.pending == 0:
             self.turn = "attack"
-        self.last_event = ("beat", attack.code(), defend.code())
+        self.last_event = ("beat", attack.code(), defend.code(), illegal)
+
+    def catch(self, pid: str, attack_code: str, defend_code: str) -> None:
+        if self.finished:
+            raise DurakError("Игра окончена")
+        if not self.shulers:
+            raise DurakError("Режим без шулеров")
+        if self.turn != "attack":
+            raise DurakError("Уличить можно только после того, как все карты побиты")
+        if pid != self.attacker():
+            raise DurakError("Ловить шулера может только атакующий")
+        pair_idx = self._pair_index(attack_code)
+        pair = self.table[pair_idx]
+        defend = pair[1]
+        if defend is None or defend.code() != defend_code.upper():
+            raise DurakError("Такой карты нет на столе")
+        if not self.beats_illegal[pair_idx]:
+            raise DurakError("Эта карта побита честно")
+        defender = self.defender()
+        self.hands[defender].append(defend)
+        pair[1] = None
+        self.beats_illegal[pair_idx] = False
+        self.pending += 1
+        self.turn = "defend"
+        self.last_event = ("catch", attack_code, defend_code)
 
     def take(self, pid: str) -> None:
         if self.finished:
@@ -248,6 +293,7 @@ class DurakGame:
                     self.hands[pid].append(c)
                     count += 1
         self.table = []
+        self.beats_illegal = []
         self.pending = 0
         self._finish_round(self.attacker())
         self.last_event = ("take", count)
@@ -277,6 +323,7 @@ class DurakGame:
                 if c:
                     self.discard.append(c)
         self.table = []
+        self.beats_illegal = []
         self.pending = 0
         self.transferred = set()
         self.attacker_idx = self.order.index(next_attacker)
@@ -313,12 +360,25 @@ class DurakGame:
             self.mode == MODE_TRANSFER
             and self.turn == "defend"
             and self.defender() == viewer_id
-            and len(self.table) == 1
-            and self.table[0][1] is None
+            and len(self.table) > 0
+            and all(d is None for _, d in self.table)
+            and len({a.rank for a, _ in self.table}) == 1
             and self._next_defender_candidate(viewer_id) is not None
             and any(c.rank == self.table[0][0].rank for c in self.hands.get(viewer_id, []))
         )
         can_throw = not self.finished and self._can_throw_in(viewer_id)
+        can_catch = (
+            self.shulers
+            and not self.finished
+            and self.turn == "attack"
+            and viewer_id == self.attacker()
+            and any(self.beats_illegal)
+        )
+        cheats = [
+            d.code()
+            for (a, d), illegal in zip(self.table, self.beats_illegal)
+            if illegal and d is not None
+        ]
         return {
             "deck": self._cards_left(),
             "trump": self.trump_card.code() if self.trump_card else None,
@@ -337,7 +397,10 @@ class DurakGame:
             "can_defend": self.turn == "defend" and self.defender() == viewer_id,
             "can_transfer": can_transfer,
             "can_throw": can_throw,
+            "can_catch": can_catch,
+            "cheats": cheats,
             "mode": self.mode,
+            "shulers": self.shulers,
             "throw_all": self.throw_all,
             "deck_size": self.deck_size,
             "order": list(self.order),

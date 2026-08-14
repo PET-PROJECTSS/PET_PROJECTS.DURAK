@@ -325,6 +325,94 @@ class GameTests(unittest.TestCase):
         st_c = g.public_state("c")
         self.assertFalse(st_c["can_transfer"])
 
+    def test_transfer_multiple_unbeaten_cards(self):
+        g = DurakGame(["a", "b", "c", "d"], first_attacker="a", mode="perevodnoi")
+        g.hands["a"] = [Card("10D")]
+        g.hands["b"] = [Card("10C"), Card("10S")]
+        g.hands["c"] = [Card("10H")]
+        g.hands["d"] = [Card("7S"), Card("8S")]
+        g.attack("a", "10D")
+        g.transfer("b", "10C")
+        self.assertEqual(g.defender(), "c")
+        self.assertEqual(len(g.table), 2)
+        self.assertTrue(g.public_state("c")["can_transfer"])
+        g.transfer("c", "10H")
+        self.assertEqual(g.defender(), "d")
+        self.assertEqual(len(g.table), 3)
+        self.assertEqual(g.pending, 3)
+
+    def test_transfer_all_beaten_cards_cannot_transfer(self):
+        g = DurakGame(["a", "b", "c"], first_attacker="a", mode="perevodnoi")
+        g.trump = "D"
+        g.hands["a"] = [Card("9D")]
+        g.hands["b"] = [Card("9C"), Card("10D")]
+        g.hands["c"] = [Card("10D"), Card("QD"), Card("9H")]
+        g.attack("a", "9D")
+        g.transfer("b", "9C")
+        g.beat("c", "9D", "10D")
+        g.beat("c", "9C", "QD")
+        with self.assertRaises(DurakError):
+            g.transfer("c", "9H")
+
+    def test_shulers_allows_illegal_beat(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
+        g.trump = "C"
+        g.hands["a"] = [Card("9C")]
+        g.hands["b"] = [Card("10H")]
+        g.attack("a", "9C")
+        g.beat("b", "9C", "10H")
+        self.assertEqual(g.pending, 0)
+        self.assertEqual(g.turn, "attack")
+
+    def test_no_shulers_rejects_illegal_beat(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=False)
+        g.trump = "C"
+        g.hands["a"] = [Card("9C")]
+        g.hands["b"] = [Card("10H")]
+        g.attack("a", "9C")
+        with self.assertRaises(DurakError):
+            g.beat("b", "9C", "10H")
+
+    def test_catch_returns_card_to_defender(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
+        g.trump = "C"
+        g.hands["a"] = [Card("9C")]
+        g.hands["b"] = [Card("10H"), Card("8H")]
+        g.attack("a", "9C")
+        g.beat("b", "9C", "10H")
+        self.assertEqual(g.pending, 0)
+        st = g.public_state("a")
+        self.assertTrue(st["can_catch"])
+        self.assertEqual(st["cheats"], ["10H"])
+        g.catch("a", "9C", "10H")
+        self.assertIn(Card("10H"), g.hands["b"])
+        self.assertEqual(g.table, [[Card("9C"), None]])
+        self.assertEqual(g.pending, 1)
+        self.assertEqual(g.turn, "defend")
+        st2 = g.public_state("a")
+        self.assertFalse(st2["can_catch"])
+
+    def test_catch_honest_beat_raises(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
+        g.trump = "D"
+        g.hands["a"] = [Card("9C")]
+        g.hands["b"] = [Card("10C")]
+        g.attack("a", "9C")
+        g.beat("b", "9C", "10C")
+        with self.assertRaises(DurakError):
+            g.catch("a", "9C", "10C")
+
+    def test_shulers_done_accepts_cheat(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
+        g.trump = "C"
+        g.hands["a"] = [Card("9C"), Card("7D")]
+        g.hands["b"] = [Card("10H"), Card("6S")]
+        g.attack("a", "9C")
+        g.beat("b", "9C", "10H")
+        g.done("a")
+        self.assertEqual(g.attacker(), "b")
+        self.assertEqual(g.turn, "attack")
+
 
 if __name__ == "__main__":
     unittest.main()

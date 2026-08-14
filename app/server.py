@@ -125,10 +125,13 @@ async def create_room_handler(request):
         stake = int(data.get("stake") or data.get("settings", {}).get("stake") or 0)
     except (TypeError, ValueError):
         stake = 0
+    settings_raw = data.get("settings") or {}
+    shulers = bool(data.get("shulers")) or bool(settings_raw.get("s_shulerami"))
     settings = {
         "max_players": max_players,
         "mode": mode,
         "throw_all": bool(data.get("throw_all")),
+        "shulers": shulers,
         "deck_size": deck_size,
         "stake": max(0, stake),
     }
@@ -149,12 +152,13 @@ async def join_room_handler(request):
     room = manager.get(room_id)
     if not room:
         return web.json_response({"ok": False, "error": "Комната не найдена"}, status=404)
-    if room.status == "playing":
-        return web.json_response({"ok": False, "error": "Игра уже идёт"}, status=409)
     data = await request.json()
     player = _resolve_player(data)
     if not player:
         return web.json_response({"ok": False, "error": "Не удалось определить пользователя"}, status=401)
+    if room.status == "playing":
+        if player["id"] not in room.players:
+            return web.json_response({"ok": False, "error": "Игра уже идёт"}, status=409)
     if room.private and (data.get("password") or "") != room.password:
         return web.json_response({"ok": False, "error": "Неверный пароль"}, status=403)
     try:

@@ -378,6 +378,31 @@ body {
   flex-direction: column;
 }
 
+.resume-banner {
+  margin: calc(var(--s) * 8px) calc(var(--s) * 14px) 0;
+  padding: calc(var(--s) * 10px);
+  border: 0;
+  border-radius: calc(var(--s) * 12px);
+  background: linear-gradient(135deg, #ffc94d, #f2a93b);
+  color: #5b3b00;
+  font: 700 calc(var(--s) * 16px) inherit, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--s) * 8px);
+  cursor: pointer;
+  box-shadow: 0 calc(var(--s) * 2px) calc(var(--s) * 8px) rgba(0, 0, 0, 0.25);
+}
+
+.resume-banner .resume-ico {
+  font-size: calc(var(--s) * 18px);
+  line-height: 1;
+}
+
+.resume-banner:active {
+  transform: scale(0.97);
+}
+
 .blue-area .play {
   text-align: center;
   padding: calc(var(--s) * 4px) 0 calc(var(--s) * 6px);
@@ -3385,8 +3410,8 @@ body.app-tab .bottom-nav {
   position: absolute;
   left: 0;
   right: 0;
-  top: 462px;
-  height: 392px;
+  top: 545px;
+  height: 455px;
   display: flex;
   flex-wrap: wrap;
   align-content: center;
@@ -3436,6 +3461,57 @@ body.app-tab .bottom-nav {
 
 .game-scene .t-attack.drag-over {
   transform: rotate(-6deg) scale(1.06);
+}
+
+/* --- шулер --- */
+.game-scene .t-defend.cheat .cardface img {
+  filter: drop-shadow(0 0 7px rgba(255, 96, 86, 0.95)) drop-shadow(0 3px 5px rgba(0, 0, 0, 0.28));
+}
+
+.game-scene .t-defend.cheat {
+  cursor: pointer;
+}
+
+.game-scene .cheat-badge {
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 42px;
+  height: 42px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.game-scene .cheat-badge img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+  animation: cheat-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cheat-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18) rotate(-8deg);
+  }
+}
+
+.game-scene .turn-text.catch-hint {
+  color: #ffe08a;
+}
+
+.game-scene .turn-text.opp-gone {
+  color: #ffc9a3;
+}
+
+.game-scene .turn-text.dc-sub {
+  margin-top: 4px;
+  font-size: 20px;
+  color: #bcd4e0;
 }
 
 /* --- рука --- */
@@ -3507,7 +3583,7 @@ body.app-tab .bottom-nav {
 .game-scene .discard {
   position: absolute;
   right: 8px;
-  top: 480px;
+  top: 565px;
   width: 66px;
   height: 94px;
   z-index: 2;
@@ -3579,6 +3655,10 @@ body.app-tab .bottom-nav {
     opacity: 0.5;
     transform: translate(var(--fx, 0px), var(--fy, 0px)) rotate(var(--fr, 0deg));
   }
+  50% {
+    opacity: 0.85;
+    transform: translate(calc(var(--fx, 0px) * 0.5 + var(--mx, 0px)), calc(var(--fy, 0px) * 0.5 + var(--my, 0px))) rotate(calc(var(--fr, 0deg) * 0.5));
+  }
   to {
     opacity: 1;
     transform: rotate(var(--fr, 0deg));
@@ -3589,6 +3669,10 @@ body.app-tab .bottom-nav {
   from {
     opacity: 0.3;
     transform: translate(var(--fx, 0px), var(--fy, 0px)) rotate(var(--dr, 0deg));
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(calc(var(--fx, 0px) * 0.5 + var(--mx, 0px)), calc(var(--fy, 0px) * 0.5 + var(--my, 0px))) rotate(calc(var(--dr, 0deg) * 0.5));
   }
   to {
     opacity: 1;
@@ -3605,6 +3689,10 @@ body.app-tab .bottom-nav {
   from {
     opacity: 0;
     transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--dr, 0deg));
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(calc(var(--dx, 0px) * 0.5 + var(--mx, 0px)), calc(var(--dy, 0px) * 0.5 + var(--my, 0px))) rotate(calc(var(--dr, 0deg) * 0.5));
   }
   to {
     opacity: 1;
@@ -3634,6 +3722,10 @@ body.app-tab .bottom-nav {
   from {
     opacity: 0;
     transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--fr, 0deg));
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(calc(var(--dx, 0px) * 0.5 + var(--mx, 0px)), calc(var(--dy, 0px) * 0.5 + var(--my, 0px))) rotate(calc(var(--fr, 0deg) * 0.5));
   }
   to {
     opacity: 1;

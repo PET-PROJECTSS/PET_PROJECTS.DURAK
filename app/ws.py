@@ -1,13 +1,17 @@
 import asyncio
 import json
 import logging
+import time
 
 from aiohttp import web
 
+import config
 from app.rooms import manager
 from game.durak import DurakError, DurakGame
 
 logger = logging.getLogger("ws")
+
+DISCONNECT_GRACE = max(5, getattr(config, "DISCONNECT_GRACE", 20))
 
 
 def _opponent(room, pid):
@@ -24,6 +28,7 @@ def _start_game(room):
         mode=room.mode,
         throw_all=room.throw_all,
         deck_size=room.deck_size,
+        shulers=room.shulers,
     )
     room.ready.clear()
 
@@ -36,6 +41,10 @@ def _state_for(room, pid):
         state["status"] = room.status
         state["you"] = room.players[pid]
         state["opponent"] = _opponent(room, pid)
+        state["opponent_gone"] = any(
+            p != pid and room.conns.get(p) is None and p in room.disconnected
+            for p in room.players
+        )
         state["players"] = [
             {"id": p, "name": room.players[p]["name"], "photo": room.players[p].get("photo", "")}
             for p in room.players
@@ -100,6 +109,8 @@ async def _handle_action(room, pid, data):
         game.take(pid)
     elif act == "transfer":
         game.transfer(pid, data.get("card"))
+    elif act == "catch":
+        game.catch(pid, data.get("attack"), data.get("defend"))
     elif act == "done":
         game.done(pid)
     elif act == "restart":
@@ -110,6 +121,7 @@ async def _handle_action(room, pid, data):
                 mode=room.mode,
                 throw_all=room.throw_all,
                 deck_size=room.deck_size,
+                shulers=room.shulers,
             )
     _settle(room)
 
@@ -126,6 +138,56 @@ def _settle(room):
     room._stake_settled = True
 
 
+async def _forfeit_room(room):
+    """Close remaining connections and remove the room (game is over)."""
+    for cpid, conn in list(room.conns.items()):
+        if conn is None:
+            continue
+        try:
+            await conn.send_json(_state_for(room, cpid))
+        except Exception:
+            pass
+    await asyncio.sleep(2)
+    for conn in list(room.conns.values()):
+        if conn is None:
+            continue
+        try:
+            await conn.close()
+        except Exception:
+            pass
+    manager.remove(room.id)
+
+
+async def _delayed_forfeit(room, pid):
+    """Give the player a grace period to reconnect before declaring a forfeit."""
+    try:
+        await asyncio.sleep(DISCONNECT_GRACE)
+    except asyncio.CancelledError:
+        return
+    if room.conns.get(pid) is not None:
+        return
+    if pid not in room.players:
+        return
+    room.players.pop(pid, None)
+    room.conns.pop(pid, None)
+    room.disconnected.pop(pid, None)
+    if not room.players:
+        manager.remove(room.id)
+        return
+    game = room.game
+    if game and not game.finished:
+        remaining = list(room.players.keys())
+        if remaining:
+            game.finished = True
+            game.winner = remaining[0]
+            game.turn = "idle"
+            room._stake_settled = False
+            for rp in remaining:
+                manager.transfer(pid, rp, room.stake)
+            room._stake_settled = True
+    await _forfeit_room(room)
+
+
 async def ws_handler(request):
     token = request.query.get("token", "")
     room, pid = manager.consume_token(token)
@@ -137,6 +199,7 @@ async def ws_handler(request):
 
     old = room.conns.get(pid)
     room.conns[pid] = ws
+    room.disconnected.pop(pid, None)
     if old is not None and old is not ws:
         try:
             await old.close()
@@ -164,36 +227,14 @@ async def ws_handler(request):
             elif msg.type == web.WSMsgType.ERROR:
                 break
     finally:
-        if room.conns.get(pid) is ws:
-            room.conns.pop(pid, None)
-            room.ready.discard(pid)
+        if room.conns.get(pid) is not ws:
+            return
+        room.conns[pid] = None
+        room.ready.discard(pid)
+        if room.status != "playing":
             room.players.pop(pid, None)
+            room.conns.pop(pid, None)
             if not room.players:
-                manager.remove(room.id)
-            elif room.status == "playing":
-                game = room.game
-                if game and not game.finished:
-                    remaining = list(room.players.keys())
-                    if remaining:
-                        winner = remaining[0]
-                        game.finished = True
-                        game.winner = winner
-                        game.turn = "idle"
-                        room._stake_settled = False
-                        for rp in remaining:
-                            manager.transfer(pid, rp, room.stake)
-                        room._stake_settled = True
-                for cpid, conn in list(room.conns.items()):
-                    try:
-                        await conn.send_json(_state_for(room, cpid))
-                    except Exception:
-                        pass
-                await asyncio.sleep(2)
-                for conn in list(room.conns.values()):
-                    try:
-                        await conn.close()
-                    except Exception:
-                        pass
                 manager.remove(room.id)
             else:
                 room.ready.clear()
@@ -201,4 +242,19 @@ async def ws_handler(request):
                     await broadcast(room)
                 except Exception:
                     pass
+        else:
+            game = room.game
+            if game and not game.finished:
+                room.disconnected[pid] = time.monotonic()
+                try:
+                    asyncio.get_running_loop().create_task(_delayed_forfeit(room, pid))
+                except Exception:
+                    pass
+                try:
+                    await broadcast(room)
+                except Exception:
+                    pass
+            elif game and game.finished:
+                if not any(c is not None for c in room.conns.values()):
+                    manager.remove(room.id)
     return ws

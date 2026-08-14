@@ -12,6 +12,20 @@ window.App = window.App || {};
     }
   };
 
+  function activeGameHtml() {
+    if (App.game) return "";
+    let saved = null;
+    try {
+      saved = JSON.parse(sessionStorage.getItem("durak_active") || "null");
+    } catch (e) {}
+    if (!saved || !saved.roomId) return "";
+    return `
+      <button class="resume-banner" id="resume-game">
+        <span class="resume-ico">▶</span>
+        <span class="resume-text">Вернуться в игру</span>
+      </button>`;
+  }
+
   App.renderProfile = function () {
     const me = App.me;
     const host = document.getElementById("tab-content");
@@ -56,6 +70,7 @@ window.App = window.App || {};
           </div>
         </div>
       </header>
+      ${activeGameHtml()}
       <section class="blue-area">
         <div class="play"><span class="triangle">▶</span><div class="label">Быстрая игра</div></div>
         <div class="grid">${menuCells}</div>
@@ -84,6 +99,13 @@ window.App = window.App || {};
 
     const play = host.querySelector(".play");
     if (play) play.addEventListener("click", () => App.toast("Быстрая игра — скоро", "ok"));
+
+    const resumeBtn = host.querySelector("#resume-game");
+    if (resumeBtn) {
+      resumeBtn.addEventListener("click", () => {
+        if (App.resumeGame) App.resumeGame();
+      });
+    }
   };
 
   App.renderRooms = function (kind) {

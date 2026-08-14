@@ -62,6 +62,9 @@ window.App = window.App || {};
       deal: false,
       roomName: data.room ? data.room.name : "Игра",
     };
+    try {
+      sessionStorage.setItem("durak_active", JSON.stringify({ roomId: data.room_id, pid: data.pid }));
+    } catch (e) {}
     window.addEventListener("resize", fitScene);
     document.body.classList.remove("app-tab");
     App.showScreen("screen-game");
@@ -102,8 +105,49 @@ window.App = window.App || {};
       const st = App.game.state;
       if (st && st.finished) return;
       renderDisconnected();
+      scheduleReconnect();
     };
     ws.onerror = () => {};
+  }
+
+  let reconnectTimer = null;
+  let reconnectAttempts = 0;
+
+  function scheduleReconnect() {
+    if (!App.game || App.game._leaving) return;
+    if (reconnectTimer) return;
+    if (reconnectAttempts >= 10) {
+      renderDisconnected();
+      return;
+    }
+    const delay = Math.min(60000, 1200 * Math.pow(1.7, reconnectAttempts));
+    reconnectAttempts++;
+    reconnectTimer = setTimeout(async () => {
+      reconnectTimer = null;
+      if (!App.game || App.game._leaving) return;
+      try {
+        const payload = {
+          init_data: App.initData,
+          guest_name: (App.me && App.me.name) || "Гость",
+          guest_pid: App.guestPid,
+        };
+        const data = await App.api.join(App.game.roomId, payload);
+        if (!data || !data.ok) {
+          scheduleReconnect();
+          return;
+        }
+        App.game.token = data.token;
+        reconnectAttempts = 0;
+        connect();
+      } catch (err) {
+        const msg = (err && err.message) || "";
+        if (msg.indexOf("не найдена") >= 0 || msg.indexOf("Игра уже идёт") >= 0) {
+          abandonGame();
+          return;
+        }
+        scheduleReconnect();
+      }
+    }, delay);
   }
 
   function send(obj) {
@@ -180,14 +224,23 @@ window.App = window.App || {};
     const dur = opts.dur || 460;
     const rot = opts.rot || 0;
     const ease = opts.ease || "cubic-bezier(0.25, 0.7, 0.3, 1)";
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.transition = `transform ${dur}ms ${ease} ${delay}ms, opacity ${Math.min(260, dur)}ms ease ${delay}ms`;
-        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
-        el.style.opacity = opts.fade ? "0" : "1";
-      });
+    const mx = opts.mx != null ? opts.mx : -dx * 0.1;
+    const my = opts.my != null ? opts.my : Math.min(-60, -Math.abs(dx) * 0.22);
+    const kf = [
+      { transform: "translate(0px, 0px) rotate(0deg)", opacity: 1 },
+      { offset: 0.5, transform: `translate(${dx * 0.5 + mx}px, ${dy * 0.5 + my}px) rotate(${rot * 0.5}deg)`, opacity: opts.fade ? 0.5 : 1 },
+      { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity: opts.fade ? 0 : 1 },
+    ];
+    const anim = el.animate(kf, {
+      duration: dur,
+      delay: delay,
+      easing: ease,
+      fill: "backwards",
     });
-    setTimeout(() => el.remove(), delay + dur + 220);
+    anim.onfinish = () => el.remove();
+    setTimeout(() => {
+      if (el.parentNode) el.remove();
+    }, delay + dur + 220);
   }
 
   function playBito(cards) {
@@ -217,7 +270,7 @@ window.App = window.App || {};
     let bestD = Infinity;
     els.forEach((el) => {
       const atk = el.dataset.target;
-      if (!beats(card, atk, s.trump_suit)) return;
+      if (!s.shulers && !beats(card, atk, s.trump_suit)) return;
       const p = scenePosOf(el);
       if (!p) return;
       const d = Math.hypot(p.x - x, p.y - y);
@@ -444,11 +497,12 @@ window.App = window.App || {};
         const def = pair[1];
         const targeted = App.game.target === atk;
         const beatable = s.can_defend && !def;
+        const isCheat = def && s.cheats && s.cheats.indexOf(def) >= 0;
         const atkFly = fly && fly.has(atk) ? " fly-in" : "";
         const defFly = fly && def && fly.has(def) ? " fly-in" : "";
         return `<div class="t-pair">
           <div class="t-card t-attack ${targeted ? "t-targeted" : ""} ${beatable ? "beatable" : ""}${atkFly}" data-target="${esc(atk)}" data-card="${esc(atk)}">${cardFaceHtml(atk)}</div>
-          ${def ? `<div class="t-card t-defend${defFly}" data-card="${esc(def)}">${cardFaceHtml(def)}</div>` : ""}
+          ${def ? `<div class="t-card t-defend${defFly}${isCheat ? " cheat" : ""}" data-card="${esc(def)}" data-defend="${esc(def)}" data-attack="${esc(atk)}">${cardFaceHtml(def)}${isCheat ? '<div class="cheat-badge"><img src="assets/general/appTexture44443/game_icon_bandit.png" alt=""></div>' : ""}</div>` : ""}
         </div>`;
       })
       .join("");
@@ -458,9 +512,12 @@ window.App = window.App || {};
       zone.querySelectorAll(".t-card.fly-in").forEach((el) => {
         const dest = scenePosOf(el);
         if (!dest) return;
+        const isDef = el.classList.contains("t-defend");
         el.style.setProperty("--fx", src.x - dest.x + "px");
         el.style.setProperty("--fy", src.y - dest.y + "px");
-        el.style.setProperty("--fr", el.classList.contains("t-defend") ? "8deg" : "-6deg");
+        el.style.setProperty("--fr", isDef ? "8deg" : "-6deg");
+        el.style.setProperty("--mx", "0px");
+        el.style.setProperty("--my", isDef ? "-46px" : "-70px");
       });
     }
     if (App.game._fly) App.game._fly = null;
@@ -472,6 +529,16 @@ window.App = window.App || {};
         App.game.target = el.dataset.target;
         renderTable(st);
         renderTurn(st);
+      });
+    });
+
+    zone.querySelectorAll(".t-defend.cheat").forEach((el) => {
+      el.addEventListener("click", () => {
+        const st = App.game.state;
+        if (!st || !st.can_catch) return;
+        send({ type: "catch", attack: el.dataset.attack, defend: el.dataset.defend });
+        App.toast("Шулер пойман!", "ok");
+        clearSel();
       });
     });
   }
@@ -527,6 +594,8 @@ window.App = window.App || {};
         if (dest) {
           el.style.setProperty("--fx", src.x - dest.x + "px");
           el.style.setProperty("--fy", src.y - dest.y + "px");
+          el.style.setProperty("--mx", "40px");
+          el.style.setProperty("--my", "-34px");
         }
       });
     }
@@ -655,7 +724,7 @@ window.App = window.App || {};
         let targetDist = Infinity;
         document.querySelectorAll(".game-scene .t-attack.beatable").forEach((el) => {
           const atk = el.dataset.target;
-          if (!beats(card, atk, s.trump_suit)) return;
+          if (!s.shulers && !beats(card, atk, s.trump_suit)) return;
           const c = scenePosOf(el);
           if (!c) return;
           const dist = Math.hypot(c.x - dropP.x, c.y - dropP.y);
@@ -726,6 +795,13 @@ window.App = window.App || {};
     return s.can_defend ? "Отбивайтесь" : "Ожидание соперника";
   }
 
+  function transferCard(s, sel) {
+    if (!s || !s.table.length) return null;
+    const rank = rankOf(s.table[0][0]);
+    if (sel && rankOf(sel) === rank && s.my_cards.indexOf(sel) >= 0) return sel;
+    return s.my_cards.find((c) => rankOf(c) === rank) || null;
+  }
+
   function renderTurn(s) {
     const zone = sceneEl("turn-zone");
     const sel = App.game.selected;
@@ -740,10 +816,11 @@ window.App = window.App || {};
       const allBeat = s.table.length && !s.table.some((p) => p[1] === null);
       if (s.i_am_attacker && allBeat) html.push(`<button class="big-btn" id="act-done">Бито</button>`);
       if (!s.table.length && s.can_attack && sel) html.push(`<button class="big-btn" id="act-attack">Ваш ход</button>`);
+      if (s.can_catch) html.push(`<div class="turn-text catch-hint">Нажмите на карту с меткой, чтобы поймать шулера!</div>`);
       if (!html.length) html.push(`<div class="turn-text">${turnStatus(s)}</div>`);
     } else if (s.can_defend) {
       html.push(`<button class="big-btn" id="act-take">Взять</button>`);
-      if (s.mode === "perevodnoi" && s.can_transfer && sel && s.table.length && rankOf(sel) === rankOf(s.table[0][0])) {
+      if (s.mode === "perevodnoi" && s.can_transfer && s.table.length && transferCard(s, sel)) {
         html.push(`<button class="big-btn ghost" id="act-transfer">Перевести</button>`);
       }
     }
@@ -751,6 +828,8 @@ window.App = window.App || {};
     if (s.table.length && (s.can_attack || s.can_throw) && sel && canAddCard(s, sel)) {
       html.push(`<button class="big-btn ghost" id="act-throw">Подложить</button>`);
     }
+
+    if (!s.finished && s.opponent_gone) html.push(`<div class="turn-text opp-gone">Соперник отключился. Ждём...</div>`);
 
     zone.innerHTML = html.join("");
 
@@ -777,9 +856,10 @@ window.App = window.App || {};
       clearSel();
     });
     bind("act-transfer", () => {
-      if (App.game.selected) {
-        flyFromHand(App.game.selected);
-        send({ type: "transfer", card: App.game.selected });
+      const card = transferCard(App.game.state, App.game.selected);
+      if (card) {
+        flyFromHand(card);
+        send({ type: "transfer", card });
         clearSel();
       }
     });
@@ -834,6 +914,9 @@ window.App = window.App || {};
       el.style.setProperty("--dx", src.x - cx + "px");
       el.style.setProperty("--dy", src.y - cy + "px");
       el.style.setProperty("--d", a.d + "ms");
+      const isHand = el.classList.contains("hand-card");
+      el.style.setProperty("--mx", isHand ? "46px" : "-24px");
+      el.style.setProperty("--my", isHand ? "-38px" : "44px");
     });
     const totalMs = total * step + 780;
     setTimeout(() => {
@@ -1022,7 +1105,16 @@ window.App = window.App || {};
     showGameUi();
     const zone = sceneEl("turn-zone");
     zone.innerHTML = `
-      <div class="turn-text dc">Соединение потеряно</div>`;
+      <div class="turn-text dc">Соединение потеряно</div>
+      <div class="turn-text dc-sub">Переподключение...</div>`;
+  }
+
+  function abandonGame() {
+    try {
+      sessionStorage.removeItem("durak_active");
+    } catch (e) {}
+    if (App.game) App.game._leaving = true;
+    App.leaveGame();
   }
 
   function leaveGame() {
@@ -1031,10 +1123,42 @@ window.App = window.App || {};
         App.game.ws.close();
       } catch (e) {}
     }
+    try {
+      sessionStorage.removeItem("durak_active");
+    } catch (e) {}
     App.game = null;
     App.showScreen("screen-lobby");
     App.setTab("open");
   }
+
+  App.resumeGame = async function () {
+    let saved = null;
+    try {
+      saved = JSON.parse(sessionStorage.getItem("durak_active") || "null");
+    } catch (e) {}
+    if (!saved || !saved.roomId) return;
+    try {
+      const payload = {
+        init_data: App.initData,
+        guest_name: (App.me && App.me.name) || "Гость",
+        guest_pid: App.guestPid,
+      };
+      const data = await App.api.join(saved.roomId, payload);
+      if (!data || !data.ok) {
+        try {
+          sessionStorage.removeItem("durak_active");
+        } catch (e) {}
+        App.toast("Игра уже завершена", "error");
+        return;
+      }
+      App.joinGame(data);
+    } catch (err) {
+      try {
+        sessionStorage.removeItem("durak_active");
+      } catch (e) {}
+      App.toast(err.message || "Игра уже завершена", "error");
+    }
+  };
 
   App.requestLeave = function () {
     const g = App.game;

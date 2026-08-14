@@ -25,4 +25,6 @@ APP_URL: str = os.getenv("APP_URL", "http://127.0.0.1:8080")
 
 GUEST_ALLOWED: bool = _as_bool(os.getenv("GUEST_ALLOWED"), True)
 
+DISCONNECT_GRACE: int = int(os.getenv("DISCONNECT_GRACE", "20"))
+
 WALLET_DB: str = os.getenv("WALLET_DB", "")

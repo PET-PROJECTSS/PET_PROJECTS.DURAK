@@ -16,12 +16,14 @@ class Room:
         self.max = int(settings.get("max_players") or 2)
         self.mode = settings.get("mode", "podkidnoi")
         self.throw_all = bool(settings.get("throw_all", False))
+        self.shulers = bool(settings.get("shulers", False))
         self.deck_size = int(settings.get("deck_size") or 36)
         self.stake = int(settings.get("stake") or 0)
         self.created = time.time()
         self.players: Dict[str, dict] = {host["id"]: host}
         self.tokens: Dict[str, str] = {}
         self.conns: Dict[str, object] = {}
+        self.disconnected: Dict[str, float] = {}
         self.ready = set()
         self.status = "waiting"
         self.game = None
