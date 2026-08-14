@@ -402,6 +402,22 @@ class GameTests(unittest.TestCase):
         with self.assertRaises(DurakError):
             g.catch("a", "9C", "10C")
 
+    def test_shulers_allows_illegal_throw(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
+        g.hands["a"] = [Card("9C"), Card("7D")]
+        g.hands["b"] = [Card("10H"), Card("8S")]
+        g.attack("a", "9C")
+        g.attack("a", "7D")
+        self.assertEqual(len(g.table), 2)
+
+    def test_no_shulers_rejects_illegal_throw(self):
+        g = DurakGame(["a", "b"], first_attacker="a", shulers=False)
+        g.hands["a"] = [Card("9C"), Card("7D")]
+        g.hands["b"] = [Card("10H"), Card("8S")]
+        g.attack("a", "9C")
+        with self.assertRaises(DurakError):
+            g.attack("a", "7D")
+
     def test_shulers_done_accepts_cheat(self):
         g = DurakGame(["a", "b"], first_attacker="a", shulers=True)
         g.trump = "C"

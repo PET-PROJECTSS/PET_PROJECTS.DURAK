@@ -210,6 +210,13 @@ window.App = window.App || {};
     el.innerHTML = opts.back
       ? `<img src="assets/big/cards/card_bg.png" alt="" draggable="false">`
       : cardFaceHtml(opts.card);
+    if (opts.badge) {
+      el.classList.add("float-badge");
+      const b = document.createElement("div");
+      b.className = "cheat-badge";
+      b.innerHTML = `<img src="assets/general/appTexture44443/game_icon_bandit.png" alt="">`;
+      el.appendChild(b);
+    }
     const w = opts.w || 104;
     const h = opts.h || 148;
     el.style.width = w + "px";
@@ -492,17 +499,17 @@ window.App = window.App || {};
     });
 
     zone.innerHTML = s.table
-      .map((pair) => {
+      .map((pair, i) => {
         const atk = pair[0];
         const def = pair[1];
         const targeted = App.game.target === atk;
         const beatable = s.can_defend && !def;
-        const isCheat = def && s.cheats && s.cheats.indexOf(def) >= 0;
         const atkFly = fly && fly.has(atk) ? " fly-in" : "";
         const defFly = fly && def && fly.has(def) ? " fly-in" : "";
         return `<div class="t-pair">
           <div class="t-card t-attack ${targeted ? "t-targeted" : ""} ${beatable ? "beatable" : ""}${atkFly}" data-target="${esc(atk)}" data-card="${esc(atk)}">${cardFaceHtml(atk)}</div>
-          ${def ? `<div class="t-card t-defend${defFly}${isCheat ? " cheat" : ""}" data-card="${esc(def)}" data-defend="${esc(def)}" data-attack="${esc(atk)}">${cardFaceHtml(def)}${isCheat ? '<div class="cheat-badge"><img src="assets/general/appTexture44443/game_icon_bandit.png" alt=""></div>' : ""}</div>` : ""}
+          ${def ? `<div class="t-card t-defend${defFly}" data-card="${esc(def)}" data-defend="${esc(def)}" data-attack="${esc(atk)}">${cardFaceHtml(def)}</div>` : ""}
+          ${s.can_transfer && i === 0 ? `<img class="transfer-arrow" src="assets/general/appTexture8888/arrow_hint_right.png" alt="">` : ""}
         </div>`;
       })
       .join("");
@@ -532,10 +539,25 @@ window.App = window.App || {};
       });
     });
 
-    zone.querySelectorAll(".t-defend.cheat").forEach((el) => {
+    zone.querySelectorAll(".t-defend").forEach((el) => {
       el.addEventListener("click", () => {
         const st = App.game.state;
         if (!st || !st.can_catch) return;
+        const sp = scenePosOf(el);
+        if (sp) {
+          floatCard({
+            card: el.dataset.defend,
+            srcX: sp.x,
+            srcY: sp.y,
+            dstX: oppPos().x,
+            dstY: oppPos().y,
+            back: false,
+            dur: 420,
+            rot: 14,
+            badge: true,
+            z: 96,
+          });
+        }
         send({ type: "catch", attack: el.dataset.attack, defend: el.dataset.defend });
         App.toast("Шулер пойман!", "ok");
         clearSel();
@@ -774,6 +796,7 @@ window.App = window.App || {};
   function canAddCard(s, card) {
     if (!card) return false;
     if (!s.table.length) return true;
+    if (s.shulers) return true;
     const max = Math.min(6, s.defender_cards != null ? s.defender_cards : s.opponent_cards);
     if (s.table.length >= max) return false;
     const ranks = new Set();
@@ -816,7 +839,7 @@ window.App = window.App || {};
       const allBeat = s.table.length && !s.table.some((p) => p[1] === null);
       if (s.i_am_attacker && allBeat) html.push(`<button class="big-btn" id="act-done">Бито</button>`);
       if (!s.table.length && s.can_attack && sel) html.push(`<button class="big-btn" id="act-attack">Ваш ход</button>`);
-      if (s.can_catch) html.push(`<div class="turn-text catch-hint">Нажмите на карту с меткой, чтобы поймать шулера!</div>`);
+      if (s.can_catch) html.push(`<div class="turn-text catch-hint">Нажмите на нечестно брошенную карту, чтобы поймать шулера!</div>`);
       if (!html.length) html.push(`<div class="turn-text">${turnStatus(s)}</div>`);
     } else if (s.can_defend) {
       html.push(`<button class="big-btn" id="act-take">Взять</button>`);

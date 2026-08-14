@@ -3410,14 +3410,37 @@ body.app-tab .bottom-nav {
   position: absolute;
   left: 0;
   right: 0;
-  top: 545px;
-  height: 455px;
+  top: 575px;
+  height: 425px;
   display: flex;
   flex-wrap: wrap;
   align-content: center;
   justify-content: center;
   gap: 14px 18px;
   z-index: 3;
+}
+
+.game-scene .transfer-arrow {
+  position: absolute;
+  right: -54px;
+  top: 8px;
+  width: 54px;
+  height: 108px;
+  z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+  animation: transfer-pulse 0.85s ease-in-out infinite;
+}
+
+@keyframes transfer-pulse {
+  0%, 100% {
+    transform: translateX(2px) rotate(6deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(-4px) rotate(-3deg);
+    opacity: 1;
+  }
 }
 
 .game-scene .t-pair {
@@ -3583,7 +3606,7 @@ body.app-tab .bottom-nav {
 .game-scene .discard {
   position: absolute;
   right: 8px;
-  top: 565px;
+  top: 595px;
   width: 66px;
   height: 94px;
   z-index: 2;

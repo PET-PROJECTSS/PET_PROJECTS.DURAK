@@ -192,7 +192,7 @@ class DurakGame:
             for a, d in self.table:
                 if d:
                     ranks.add(d.rank)
-            if card.rank not in ranks:
+            if card.rank not in ranks and not self.shulers:
                 raise DurakError("Подкидывать можно только карты уже лежащих достоинств")
         self.hands[pid].remove(card)
         self.table.append([card, None])
