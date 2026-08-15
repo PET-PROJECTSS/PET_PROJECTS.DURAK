@@ -55,6 +55,7 @@ body {
 #screen-game {
   height: 100vh;
   height: 100dvh;
+  height: var(--win-h);
   overflow: hidden;
   background: #6e96b1;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.7px, transparent 0.8px),
@@ -153,18 +154,26 @@ body {
   background: none;
   border: none;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
   font-family: inherit;
   color: #1e1e1e;
   font-size: 14px;
-  font-size: calc(var(--s) * 14px);
   padding: 0;
   flex: 1;
 }
 
 .nav-icon {
   font-size: 30px;
-  font-size: calc(var(--s) * 30px);
   line-height: 1;
+}
+
+.nav-item > span:last-child {
+  font-size: 14px;
+  line-height: 1.1;
+  color: inherit;
+  white-space: nowrap;
+  -webkit-text-size-adjust: 100%;
 }
 
 .nav-item.active {
@@ -856,12 +865,14 @@ body.app-tab {
   background: #fff;
   height: 100vh;
   height: 100dvh;
+  height: var(--win-h);
   overflow: hidden;
 }
 
 body.app-tab .screen {
   height: 100vh;
   height: 100dvh;
+  height: var(--win-h);
   min-height: 0;
 }
 
@@ -2373,14 +2384,6 @@ body.app-tab .bottom-nav {
 @media (max-width: 576px) {
   body.app-tab .top {
     padding-top: max(14px, env(safe-area-inset-top));
-  }
-
-  .nav-item {
-    font-size: calc(var(--s) * 14px);
-  }
-
-  .nav-icon {
-    font-size: calc(var(--s) * 30px);
   }
 }
 

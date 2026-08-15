@@ -40,6 +40,7 @@ window.App = window.App || {};
     const vh = window.innerHeight || 680;
     const s = Math.max(0.68, Math.min(1, vh / 680));
     document.documentElement.style.setProperty("--s", s.toFixed(3));
+    document.documentElement.style.setProperty("--win-h", Math.round(vh) + "px");
   }
   applyScale();
   window.addEventListener("resize", applyScale);
