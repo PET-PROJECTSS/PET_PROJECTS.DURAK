@@ -69,7 +69,18 @@ def _state_for(room, pid):
 async def _queue_writer(ws, queue):
     try:
         while True:
-            msg = await queue.get()
+            try:
+                msg = await asyncio.wait_for(queue.get(), timeout=10)
+            except asyncio.TimeoutError:
+                try:
+                    await ws.send_json({"type": "ping"})
+                except Exception:
+                    try:
+                        await ws.close()
+                    except Exception:
+                        pass
+                    return
+                continue
             try:
                 await ws.send_json(msg)
             except Exception:
@@ -228,22 +239,23 @@ async def ws_handler(request):
     if room is None or pid is None:
         return web.Response(status=401, text="invalid token")
 
-    ws = web.WebSocketResponse(max_msg_size=8192)
+    ws = web.WebSocketResponse(max_msg_size=8192, heartbeat=20)
     await ws.prepare(request)
 
     old = room.conns.get(pid)
     room.conns[pid] = ws
     room.disconnected.pop(pid, None)
-    if old is not None and old is not ws:
-        try:
-            await old.close()
-        except Exception:
-            pass
 
     queue = asyncio.Queue()
     room.queues[pid] = queue
     writer = asyncio.get_running_loop().create_task(_queue_writer(ws, queue))
     room.writers[pid] = writer
+
+    if old is not None and old is not ws:
+        try:
+            await asyncio.wait_for(old.close(), timeout=1)
+        except Exception:
+            pass
 
     try:
         queue.put_nowait(_state_for(room, pid))
@@ -255,6 +267,8 @@ async def ws_handler(request):
                     data = json.loads(msg.data)
                     if data.get("type") == "emoji":
                         await broadcast_emoji(room, pid, data.get("emoji"))
+                        continue
+                    if data.get("type") in ("ping", "pong"):
                         continue
                     await _handle_action(room, pid, data)
                     await broadcast(room)

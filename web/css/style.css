@@ -3218,29 +3218,44 @@ body.app-tab .bottom-nav {
 }
 
 .game-scene .avatar.turn {
-  box-shadow: 0 0 0 4px #6fce54, 0 3px 6px #0007;
+  box-shadow: 0 3px 6px #0007;
 }
 
 .game-scene .turn-timer {
   position: absolute;
   inset: 0;
   z-index: 3;
-  border: 3px solid #6fce54;
-  border-radius: inherit;
-  box-shadow: 0 0 16px rgba(111, 206, 84, 0.7);
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  transform-origin: center;
+}
+
+.game-scene .turn-timer rect {
+  fill: none;
+  stroke: #6fce54;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 348;
   animation: turn-timer-drain var(--tt, 30s) linear forwards;
 }
 
 @keyframes turn-timer-drain {
-  from {
-    transform: scale(1);
-    opacity: 1;
+  0% {
+    stroke-dashoffset: 0;
+    stroke: #6fce54;
   }
-  to {
-    transform: scale(0.25);
-    opacity: 0.1;
+  70% {
+    stroke-dashoffset: 244;
+    stroke: #6fce54;
+  }
+  72% {
+    stroke-dashoffset: 251;
+    stroke: #ff5252;
+  }
+  100% {
+    stroke-dashoffset: 348;
+    stroke: #ff5252;
+    opacity: 0;
   }
 }
 
@@ -3937,7 +3952,6 @@ body.app-tab .bottom-nav {
 
 .game-scene .my-avatar.turn {
   border-color: #6fce54;
-  box-shadow: 0 0 0 3px rgba(111, 206, 84, 0.45);
 }
 
 .game-scene .actions {

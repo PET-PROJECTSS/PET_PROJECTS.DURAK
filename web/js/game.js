@@ -71,18 +71,37 @@ window.App = window.App || {};
     connect();
   };
 
+  let watchdogTimer = null;
+
+  function watchdogReset() {
+    if (watchdogTimer) clearTimeout(watchdogTimer);
+    watchdogTimer = setTimeout(() => {
+      if (App.game && App.game.ws) {
+        try {
+          App.game.ws.close();
+        } catch (e) {}
+      }
+    }, 30000);
+  }
+
   function connect() {
     const proto = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${proto}://${location.host}/ws?token=${encodeURIComponent(App.game.token)}`);
     App.game.ws = ws;
     ws.onopen = () => {
       App.toast("Подключено", "ok");
+      watchdogReset();
     };
     ws.onmessage = (e) => {
+      watchdogReset();
       let d;
       try {
         d = JSON.parse(e.data);
       } catch (err) {
+        return;
+      }
+      if (d.type === "ping") {
+        send({ type: "pong" });
         return;
       }
       if (d.type === "state") {
@@ -105,6 +124,7 @@ window.App = window.App || {};
       }
     };
     ws.onclose = () => {
+      if (watchdogTimer) clearTimeout(watchdogTimer);
       if (!App.game) return;
       if (App.game._leaving) return;
       const st = App.game.state;
@@ -434,9 +454,8 @@ window.App = window.App || {};
   function turnTimerHtml(active, s) {
     const left = s && s.turn_seconds_left;
     if (!active || !left || left <= 0) return "";
-    const total = (s.turn_seconds || 30) * 1000;
     const ms = Math.round(Math.min(left, s.turn_seconds || 30) * 1000);
-    return `<div class="turn-timer" style="--tt:${Math.max(250, ms)}ms;--tt-total:${total}ms"></div>`;
+    return `<svg class="turn-timer" viewBox="0 0 100 100" preserveAspectRatio="none" style="--tt:${Math.max(250, ms)}ms"><rect x="4" y="4" width="92" height="92" rx="12" fill="none"/></svg>`;
   }
 
   function renderOpp(s) {

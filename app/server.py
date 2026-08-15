@@ -181,6 +181,8 @@ async def no_cache_middleware(request, handler):
     resp = await handler(request)
     if request.path in ("/", "/index.html"):
         resp.headers["Cache-Control"] = "no-store"
+    elif request.path.startswith(("/assets/", "/css/", "/js/")):
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     else:
         resp.headers["Cache-Control"] = "no-cache"
     return resp
