@@ -3673,6 +3673,10 @@ body.app-tab .bottom-nav {
   animation: game-hand-fly 0.32s cubic-bezier(0.25, 0.7, 0.3, 1) backwards;
 }
 
+.game-scene .hand-card.fly-in.fly-take {
+  animation: game-hand-fly 0.9s cubic-bezier(0.25, 0.7, 0.3, 1) backwards;
+}
+
 @keyframes game-card-fly {
   from {
     opacity: 0.5;

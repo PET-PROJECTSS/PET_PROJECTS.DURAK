@@ -347,7 +347,7 @@ class DurakGame:
         remaining = [p for p in self.order if p not in self.ended]
         if len(remaining) <= 1:
             self.finished = True
-            self.winner = remaining[0] if remaining else None
+            self.winner = self.ended[-1] if self.ended else (remaining[0] if remaining else None)
             self.turn = "idle"
 
     def sort_hands(self) -> None:

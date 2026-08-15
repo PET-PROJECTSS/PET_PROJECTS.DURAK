@@ -585,7 +585,10 @@ window.App = window.App || {};
     }
     const dealing = !!(App.game.deal && !App.game._takeFly);
     const takenMap = App.game._takenCards || {};
-    const cardW = n > 7 ? 104 : n > 5 ? 118 : 126;
+    let cardW = n > 7 ? 104 : n > 5 ? 118 : 126;
+    if (n > 12) {
+      cardW = Math.max(72, Math.min(cardW, 576 - 8 - 40 * (n - 1)));
+    }
     const margin = 4;
     const span = 576 - margin * 2 - cardW;
     zone.innerHTML = cards
@@ -611,6 +614,7 @@ window.App = window.App || {};
         let src = deckPos();
         if (App.game._takeFly && takenMap[c]) {
           src = takenMap[c];
+          el.classList.add("fly-take");
         }
         const dest = scenePosOf(el);
         if (dest) {
@@ -764,12 +768,13 @@ window.App = window.App || {};
       } else {
         const zoneEl = sceneEl("table-zone");
         const zr = zoneEl ? zoneEl.getBoundingClientRect() : null;
+        const handEl = sceneEl("hand-zone");
+        const hr = handEl ? handEl.getBoundingClientRect() : null;
         const onTable =
           zr &&
           dropP.x >= (zr.left - srect.left) / sx &&
           dropP.x <= (zr.right - srect.left) / sx &&
-          dropP.y >= (zr.top - srect.top) / sy &&
-          dropP.y <= (zr.bottom - srect.top) / sy;
+          dropP.y < ((hr ? hr.top : zr.bottom) - srect.top) / sy - 20;
         if (onTable && (s.can_attack || s.can_throw)) {
           if (canAddCard(s, card)) {
             sent = true;

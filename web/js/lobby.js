@@ -346,8 +346,7 @@ window.App = window.App || {};
     const track = slider.querySelector(".track");
     const thumb = slider.querySelector(".thumb");
     const valueEl = host.querySelector("#bet-value");
-    const MIN = 100;
-    const MAX = 10000000;
+    const STEPS = [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
     const format = (v) => {
       if (v >= 1000000) {
         const m = v / 1000000;
@@ -361,9 +360,11 @@ window.App = window.App || {};
     };
     const setFrac = (f) => {
       f = Math.max(0, Math.min(1, f));
+      const idx = Math.round(f * (STEPS.length - 1));
+      const pos = STEPS.length > 1 ? idx / (STEPS.length - 1) : 0;
       const tw = thumb.offsetWidth || 34;
-      thumb.style.left = `calc(${(f * 100).toFixed(2)}% - ${(f * tw).toFixed(1)}px)`;
-      state.stake = Math.round(MIN * Math.pow(MAX / MIN, f));
+      thumb.style.left = `calc(${(pos * 100).toFixed(2)}% - ${(pos * tw).toFixed(1)}px)`;
+      state.stake = STEPS[idx];
       valueEl.textContent = format(state.stake);
     };
     const fracFrom = (e) => {
@@ -419,25 +420,38 @@ window.App = window.App || {};
       });
     });
 
+    const EXCLUSIVE = {
+      podkidnoi: "perevodnoi",
+      perevodnoi: "podkidnoi",
+      sosedni: "vse",
+      vse: "sosedni",
+      shuleri: "chestnaya",
+      chestnaya: "shuleri",
+      klassika: "nichya",
+      nichya: "klassika",
+    };
     host.querySelectorAll("#modes .mode").forEach((m) => {
       m.addEventListener("click", () => {
         const id = m.dataset.mode;
-        const on = !modesOn.has(id);
-        if (on) {
-          modesOn.add(id);
-          const badge = m.querySelector(".mode-check");
-          if (!badge) {
-            const b = document.createElement("b");
-            b.className = "mode-check";
-            b.textContent = "✓";
-            m.insertBefore(b, m.firstChild);
+        if (modesOn.has(id)) return;
+        const partner = EXCLUSIVE[id];
+        if (partner && modesOn.has(partner)) {
+          modesOn.delete(partner);
+          const pEl = host.querySelector(`#modes .mode[data-mode="${partner}"]`);
+          if (pEl) {
+            pEl.classList.remove("on");
+            const badge = pEl.querySelector(".mode-check");
+            if (badge) badge.remove();
           }
-        } else {
-          modesOn.delete(id);
-          const badge = m.querySelector(".mode-check");
-          if (badge) badge.remove();
         }
-        m.classList.toggle("on", on);
+        modesOn.add(id);
+        if (!m.querySelector(".mode-check")) {
+          const b = document.createElement("b");
+          b.className = "mode-check";
+          b.textContent = "✓";
+          m.insertBefore(b, m.firstChild);
+        }
+        m.classList.add("on");
       });
     });
 

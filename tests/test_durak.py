@@ -117,7 +117,20 @@ class GameTests(unittest.TestCase):
         g.take("b")
         self.assertTrue(g.finished)
         self.assertEqual(g.ended, ["a"])
-        self.assertEqual(g.winner, "b")
+        self.assertEqual(g.winner, "a")
+
+    def test_endgame_take_last_card_fool_loses(self):
+        g = DurakGame(["a", "b"], first_attacker="a")
+        g.deck = []
+        g.trump_card = None
+        g.hands["a"] = [Card("9D")]
+        g.hands["b"] = [Card("6H")]
+        g.attack("a", "9D")
+        g.take("b")
+        self.assertTrue(g.finished)
+        self.assertEqual(len(g.hands["b"]), 2)
+        self.assertEqual(len(g.hands["a"]), 0)
+        self.assertEqual(g.winner, "a")
 
     def test_endgame_beat_out(self):
         g = DurakGame(["a", "b"], first_attacker="a")
@@ -132,7 +145,7 @@ class GameTests(unittest.TestCase):
         g.done("a")
         self.assertTrue(g.finished)
         self.assertEqual(g.ended, ["b"])
-        self.assertEqual(g.winner, "a")
+        self.assertEqual(g.winner, "b")
 
     def test_draw_up_to_six(self):
         g = DurakGame(["a", "b"], first_attacker="a")
