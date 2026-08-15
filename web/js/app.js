@@ -2,6 +2,30 @@ window.App = window.App || {};
 (function () {
   const App = window.App;
 
+  function loadedBuild() {
+    let max = 0;
+    document.querySelectorAll("script[src],link[href]").forEach((el) => {
+      const m = (el.getAttribute("src") || el.getAttribute("href") || "").match(/[?&]v=(\d+)/);
+      if (m) max = Math.max(max, parseInt(m[1], 10) || 0);
+    });
+    return max;
+  }
+
+  (function autoUpdate() {
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) location.reload();
+    });
+    fetch("/api/build", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d || typeof d.build !== "number") return;
+        if (d.build === loadedBuild()) return;
+        if (App.game && App.game.state && !App.game.state.finished) return;
+        location.reload();
+      })
+      .catch(() => {});
+  })();
+
   App.guestName = localStorage.getItem("durak_guest_name") || "";
   let guestPid = localStorage.getItem("durak_guest_pid");
   if (!guestPid) {

@@ -179,13 +179,30 @@ async def join_room_handler(request):
 @web.middleware
 async def no_cache_middleware(request, handler):
     resp = await handler(request)
-    resp.headers["Cache-Control"] = "no-cache"
+    if request.path in ("/", "/index.html"):
+        resp.headers["Cache-Control"] = "no-store"
+    else:
+        resp.headers["Cache-Control"] = "no-cache"
     return resp
+
+
+def _index_build() -> int:
+    try:
+        html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+        versions = [int(v) for v in re.findall(r"[?&]v=(\d+)", html) if v.isdigit()]
+        return max(versions) if versions else 0
+    except OSError:
+        return 0
+
+
+async def build_handler(request):
+    return web.json_response({"build": _index_build()})
 
 
 def build_app() -> web.Application:
     app = web.Application(middlewares=[no_cache_middleware])
     app.router.add_get("/", index_handler)
+    app.router.add_get("/api/build", build_handler)
     app.router.add_static("/css", WEB_DIR / "css")
     app.router.add_static("/js", WEB_DIR / "js")
     app.router.add_static("/assets", WEB_DIR / "assets")
