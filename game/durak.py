@@ -1,4 +1,5 @@
 import random
+import time
 from typing import Dict, List, Optional
 
 RANKS_24 = ["9", "10", "J", "Q", "K", "A"]
@@ -13,6 +14,8 @@ SUIT_RED = {"H", "D"}
 MODE_CLASSIC = "podkidnoi"
 MODE_TRANSFER = "perevodnoi"
 MODES = (MODE_CLASSIC, MODE_TRANSFER)
+
+TURN_SECONDS = 30
 
 
 class Card:
@@ -101,7 +104,12 @@ class DurakGame:
         self.winner: Optional[str] = None
         self.round = 0
         self.last_event = None
+        self.turn_seconds = TURN_SECONDS
+        self.turn_until = time.monotonic() + self.turn_seconds
         self._deal()
+
+    def _touch_turn(self) -> None:
+        self.turn_until = time.monotonic() + self.turn_seconds
 
     def attacker(self) -> str:
         return self.order[self.attacker_idx]
@@ -200,6 +208,7 @@ class DurakGame:
         self.pending += 1
         self.turn = "defend"
         self.last_event = ("attack", card.code())
+        self._touch_turn()
 
     def transfer(self, pid: str, card_code: str) -> None:
         if self.finished:
@@ -230,6 +239,7 @@ class DurakGame:
         self.pending += 1
         self.transferred.add(pid)
         self.last_event = ("transfer", card.code())
+        self._touch_turn()
 
     def beat(self, pid: str, attack_code: str, defend_code: str) -> None:
         if self.finished:
@@ -252,6 +262,7 @@ class DurakGame:
         if self.pending == 0:
             self.turn = "attack"
         self.last_event = ("beat", attack.code(), defend.code(), illegal)
+        self._touch_turn()
 
     def catch(self, pid: str, attack_code: str, defend_code: str) -> None:
         if self.finished:
@@ -276,6 +287,7 @@ class DurakGame:
         self.pending += 1
         self.turn = "defend"
         self.last_event = ("catch", attack_code, defend_code)
+        self._touch_turn()
 
     def take(self, pid: str) -> None:
         if self.finished:
@@ -331,6 +343,7 @@ class DurakGame:
         self._draw_after_round()
         if not self.finished:
             self.turn = "attack"
+            self._touch_turn()
 
     def _draw_after_round(self) -> None:
         rotated = self.order[self.attacker_idx:] + self.order[:self.attacker_idx]
@@ -353,6 +366,47 @@ class DurakGame:
     def sort_hands(self) -> None:
         for pid in self.order:
             self.hands[pid].sort(key=lambda c: c.key())
+
+    def auto_turn(self) -> bool:
+        """Take the default action for the current actor once their time is up.
+        Returns True if an action was performed, False if nothing was possible."""
+        if self.finished or self.turn_until is None:
+            return False
+        if time.monotonic() < self.turn_until:
+            return False
+        try:
+            if self.turn == "defend":
+                self.take(self.defender())
+                return True
+            actor = self.attacker()
+            hand = sorted(self.hands.get(actor, []), key=lambda c: c.key())
+            if not hand:
+                return False
+            if not self.table:
+                self.attack(actor, hand[0].code())
+                return True
+            if self.shulers:
+                pick = hand[0]
+            else:
+                ranks = {a.rank for a, _ in self.table}
+                for d in (d for _, d in self.table if d):
+                    ranks.add(d.rank)
+                pick = next((c for c in hand if c.rank in ranks), None)
+            if pick is not None:
+                try:
+                    self.attack(actor, pick.code())
+                    return True
+                except DurakError:
+                    pass
+            if all(d is not None for _, d in self.table):
+                try:
+                    self.done(actor)
+                    return True
+                except DurakError:
+                    pass
+        except DurakError:
+            return False
+        return False
 
     def public_state(self, viewer_id: str) -> dict:
         opponent = next((p for p in self.order if p != viewer_id), None)
@@ -410,6 +464,10 @@ class DurakGame:
             "winner": self.winner,
             "round": self.round,
             "discard": len(self.discard),
+            "turn_seconds": self.turn_seconds,
+            "turn_seconds_left": max(0.0, self.turn_until - time.monotonic())
+            if (self.turn_until is not None and not self.finished)
+            else 0.0,
             "last_event": self.last_event,
             "opponent": opponent,
             "opponent_cards": len(self.hands[opponent]) if opponent else 0,

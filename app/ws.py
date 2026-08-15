@@ -66,14 +66,29 @@ def _state_for(room, pid):
     }
 
 
+async def _queue_writer(ws, queue):
+    try:
+        while True:
+            msg = await queue.get()
+            try:
+                await ws.send_json(msg)
+            except Exception:
+                try:
+                    await ws.close()
+                except Exception:
+                    pass
+                return
+    except asyncio.CancelledError:
+        pass
+
+
 async def broadcast(room, exclude=None):
     for pid, conn in list(room.conns.items()):
         if conn is None or conn is exclude:
             continue
-        try:
-            await conn.send_json(_state_for(room, pid))
-        except Exception:
-            pass
+        queue = room.queues.get(pid)
+        if queue is not None:
+            queue.put_nowait(_state_for(room, pid))
 
 
 async def broadcast_emoji(room, pid, emoji):
@@ -83,10 +98,9 @@ async def broadcast_emoji(room, pid, emoji):
     for cpid, conn in list(room.conns.items()):
         if conn is None:
             continue
-        try:
-            await conn.send_json(msg)
-        except Exception:
-            pass
+        queue = room.queues.get(cpid)
+        if queue is not None:
+            queue.put_nowait(msg)
 
 
 async def _handle_action(room, pid, data):
@@ -188,6 +202,26 @@ async def _delayed_forfeit(room, pid):
     await _forfeit_room(room)
 
 
+async def turn_timeout_loop():
+    """Periodically enforce the per-turn deadline in playing rooms."""
+    while True:
+        try:
+            await asyncio.sleep(1.0)
+            for room in manager.list():
+                game = room.game
+                if not game or room.status != "playing" or game.finished:
+                    continue
+                if game.auto_turn():
+                    _settle(room)
+                    await broadcast(room)
+                elif game.turn_until is not None and time.monotonic() >= game.turn_until:
+                    game._touch_turn()
+        except asyncio.CancelledError:
+            return
+        except Exception:
+            logger.exception("turn timeout loop error")
+
+
 async def ws_handler(request):
     token = request.query.get("token", "")
     room, pid = manager.consume_token(token)
@@ -206,8 +240,13 @@ async def ws_handler(request):
         except Exception:
             pass
 
+    queue = asyncio.Queue()
+    room.queues[pid] = queue
+    writer = asyncio.get_running_loop().create_task(_queue_writer(ws, queue))
+    room.writers[pid] = writer
+
     try:
-        await ws.send_json(_state_for(room, pid))
+        queue.put_nowait(_state_for(room, pid))
         await broadcast(room)
 
         async for msg in ws:
@@ -227,6 +266,12 @@ async def ws_handler(request):
             elif msg.type == web.WSMsgType.ERROR:
                 break
     finally:
+        if room.writers.get(pid) is writer:
+            room.writers.pop(pid, None)
+        if room.queues.get(pid) is queue:
+            room.queues.pop(pid, None)
+        if writer is not None:
+            writer.cancel()
         if room.conns.get(pid) is not ws:
             return
         room.conns[pid] = None

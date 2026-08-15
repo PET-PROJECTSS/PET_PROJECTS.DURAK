@@ -27,6 +27,8 @@ class Room:
         self.ready = set()
         self.status = "waiting"
         self.game = None
+        self.queues: Dict[str, object] = {}
+        self.writers: Dict[str, object] = {}
 
     def summary(self) -> dict:
         return {
@@ -49,14 +51,21 @@ class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
         self.wallets = WalletStore()
+        self._balance_cache: Dict[str, int] = {}
 
     START_BALANCE = WalletStore.START_BALANCE
 
     def balance_of(self, pid: str) -> int:
-        return self.wallets.balance_of(pid)
+        cached = self._balance_cache.get(pid)
+        if cached is None:
+            cached = self.wallets.balance_of(pid)
+            self._balance_cache[pid] = cached
+        return cached
 
     def transfer(self, loser: str, winner: str, stake: int) -> None:
         self.wallets.transfer(loser, winner, stake)
+        self._balance_cache.pop(loser, None)
+        self._balance_cache.pop(winner, None)
 
     def _room_id(self) -> str:
         while True:

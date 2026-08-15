@@ -431,6 +431,14 @@ window.App = window.App || {};
     return html;
   }
 
+  function turnTimerHtml(active, s) {
+    const left = s && s.turn_seconds_left;
+    if (!active || !left || left <= 0) return "";
+    const total = (s.turn_seconds || 30) * 1000;
+    const ms = Math.round(Math.min(left, s.turn_seconds || 30) * 1000);
+    return `<div class="turn-timer" style="--tt:${Math.max(250, ms)}ms;--tt-total:${total}ms"></div>`;
+  }
+
   function renderOpp(s) {
     const opps = opponentsList(s);
     const main = opps[0];
@@ -453,6 +461,7 @@ window.App = window.App || {};
     slot.innerHTML = `
       <div class="fan">${fanBacks(main.cards, dealFrom != null, dealFrom)}</div>
       <div class="avatar ${main.photo ? "photo" : ""}${isActive ? " turn" : ""}"${photo}>
+        ${turnTimerHtml(isActive, s)}
         <div class="stack${main.ended ? " gray" : ""}">${main.cards}<i></i></div>
         <div class="avatar-label">${esc(main.name)} <span class="star">★</span></div>
       </div>
@@ -477,7 +486,7 @@ window.App = window.App || {};
     el.className = "my-avatar" + (you.photo ? " photo" : "") + (myTurn ? " turn" : "");
     if (you.photo) el.style.backgroundImage = `url('${esc(you.photo)}')`;
     else el.style.backgroundImage = "";
-    el.innerHTML = `${emoteHtml(App.game.pid)}
+    el.innerHTML = `${emoteHtml(App.game.pid)}${turnTimerHtml(myTurn, s)}
       <div class="stack gray">${s.my_cards.length}<i></i></div>
       <div class="avatar-label">${esc(you.name || "Вы")} <span class="star">★</span></div>`;
   }

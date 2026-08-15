@@ -9,7 +9,7 @@ from aiohttp import web
 import config
 from app.auth import validate_init_data
 from app.rooms import manager
-from app.ws import ws_handler
+from app.ws import turn_timeout_loop, ws_handler
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
@@ -227,8 +227,10 @@ async def run_server():
     site = web.TCPSite(runner, config.APP_HOST, config.APP_PORT)
     await site.start()
     logger.info("App running at %s", config.APP_URL)
+    timeout_task = asyncio.create_task(turn_timeout_loop())
     try:
         await asyncio.Event().wait()
     except asyncio.CancelledError:
+        timeout_task.cancel()
         await runner.cleanup()
         raise

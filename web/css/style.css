@@ -3221,6 +3221,29 @@ body.app-tab .bottom-nav {
   box-shadow: 0 0 0 4px #6fce54, 0 3px 6px #0007;
 }
 
+.game-scene .turn-timer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 3px solid #6fce54;
+  border-radius: inherit;
+  box-shadow: 0 0 16px rgba(111, 206, 84, 0.7);
+  pointer-events: none;
+  transform-origin: center;
+  animation: turn-timer-drain var(--tt, 30s) linear forwards;
+}
+
+@keyframes turn-timer-drain {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.25);
+    opacity: 0.1;
+  }
+}
+
 .game-scene .avatar-label {
   position: absolute;
   z-index: 3;
