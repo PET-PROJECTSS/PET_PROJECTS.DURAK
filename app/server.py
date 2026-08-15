@@ -195,6 +195,12 @@ def _index_build() -> int:
         return 0
 
 
+def web_app_url() -> str:
+    b = _index_build()
+    sep = "&" if "?" in config.APP_URL else "?"
+    return f"{config.APP_URL}{sep}b={b}"
+
+
 async def build_handler(request):
     return web.json_response({"build": _index_build()})
 

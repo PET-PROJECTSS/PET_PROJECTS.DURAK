@@ -8,6 +8,7 @@ from aiogram.types import MenuButtonWebApp, WebAppInfo
 
 import config
 from app.handlers import router
+from app.server import web_app_url
 
 logger = logging.getLogger("bot")
 
@@ -37,7 +38,7 @@ async def run_aiogram_bot():
     if config.APP_URL.startswith("https://"):
         try:
             await bot.set_chat_menu_button(
-                menu_button=MenuButtonWebApp(text="Играть", web_app=WebAppInfo(url=config.APP_URL))
+                menu_button=MenuButtonWebApp(text="Играть", web_app=WebAppInfo(url=web_app_url()))
             )
         except Exception as exc:
             logger.warning("set menu button failed: %s", exc)
