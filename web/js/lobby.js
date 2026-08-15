@@ -79,11 +79,28 @@ window.App = window.App || {};
     if (window.AppConfig && AppConfig.showTgDiag && App.isTelegram) {
       const diag = document.getElementById("tg-diag");
       diag.style.display = "block";
-      diag.textContent = "tg:" + App.isTelegram
-        + " · sdk:" + (App.tg ? 1 : 0)
-        + " · initData:" + App.initData.length
-        + " · hash:" + (window.location.hash || "").length
-        + " · " + (window.location.hash || "").slice(0, 120);
+      const cs = (el) => {
+        if (!el) return "null";
+        const c = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return "h=" + Math.round(r.height) + " fs=" + c.fontSize + " lh=" + c.lineHeight + " c=" + c.color + " d=" + c.display;
+      };
+      const nav = document.querySelector(".bottom-nav");
+      const item = document.querySelector(".nav-item");
+      const icon = document.querySelector(".nav-icon");
+      const label = item ? item.querySelector("span:last-child") : null;
+      const nr = nav ? nav.getBoundingClientRect() : null;
+      diag.textContent = [
+        "tg:" + App.isTelegram + " sdk:" + (App.tg ? 1 : 0),
+        "v:" + window.innerWidth + "x" + window.innerHeight,
+        "tgvh:" + (App.tg && App.tg.viewportStableHeight),
+        "wh:" + getComputedStyle(document.documentElement).getPropertyValue("--win-h"),
+        "s:" + getComputedStyle(document.documentElement).getPropertyValue("--s"),
+        "nav:" + (nr ? "t=" + Math.round(nr.top) + " h=" + Math.round(nr.height) + " " + cs(nav) : "null"),
+        "item:" + cs(item),
+        "icon:" + cs(icon),
+        "label:" + cs(label),
+      ].join(" | ");
     }
 
     host.querySelectorAll(".cell").forEach((cell) => {

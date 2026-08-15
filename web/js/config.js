@@ -1,3 +1,3 @@
 window.AppConfig = {
-  showTgDiag: false,
+  showTgDiag: true,
 };

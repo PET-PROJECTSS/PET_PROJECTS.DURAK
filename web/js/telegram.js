@@ -4,15 +4,25 @@ window.App = window.App || {};
   App.isTelegram = false;
   App.tg = null;
   App.launchParams = {};
-  try {
-    if (window.Telegram && window.Telegram.WebApp) {
-      App.tg = window.Telegram.WebApp;
-      App.isTelegram = true;
+
+  function initTg() {
+    if (App.tg) return;
+    if (!(window.Telegram && window.Telegram.WebApp)) return;
+    App.tg = window.Telegram.WebApp;
+    App.isTelegram = true;
+    try {
       App.tg.ready();
       App.tg.expand();
       if (App.tg.disableVerticalSwipes) App.tg.disableVerticalSwipes();
-    }
-  } catch (e) {}
+      if (App.tg.onEvent && App.refreshViewport) {
+        App.tg.onEvent("viewportStableHeightChanged", App.refreshViewport);
+        App.tg.onEvent("viewportChanged", App.refreshViewport);
+      }
+    } catch (e) {}
+  }
+  initTg();
+  setTimeout(initTg, 300);
+  setTimeout(initTg, 1000);
   try {
     const hash = (window.location.hash || "").replace(/^#/, "");
     if (hash) {

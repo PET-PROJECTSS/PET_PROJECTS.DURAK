@@ -36,13 +36,23 @@ window.App = window.App || {};
     return `<div class="avatar avatar-init" style="width:${s}px;height:${s}px;font-size:${Math.round(s * 0.4)}px">${initial}</div>`;
   };
 
+  function viewportHeight() {
+    const tg = window.App && window.App.tg;
+    const sh = tg && tg.viewportStableHeight;
+    if (sh && sh > 0) return sh;
+    return window.innerHeight || 0;
+  }
+
   function applyScale() {
-    const vh = window.innerHeight || 680;
+    const vh = viewportHeight() || 680;
     const s = Math.max(0.68, Math.min(1, vh / 680));
     document.documentElement.style.setProperty("--s", s.toFixed(3));
     document.documentElement.style.setProperty("--win-h", Math.round(vh) + "px");
   }
+  App.refreshViewport = applyScale;
   applyScale();
+  setTimeout(applyScale, 300);
+  setTimeout(applyScale, 1500);
   window.addEventListener("resize", applyScale);
   window.addEventListener("orientationchange", applyScale);
 
