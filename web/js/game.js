@@ -97,6 +97,11 @@ window.App = window.App || {};
         showEmote(d.from, d.emoji);
       } else if (d.type === "error") {
         App.toast(d.text, "error");
+        const st = App.game && App.game.state;
+        if (st && !st.finished) {
+          renderHand(st);
+          renderTurn(st);
+        }
       }
     };
     ws.onclose = () => {
@@ -607,6 +612,7 @@ window.App = window.App || {};
       .join("");
 
     if (newCards.length) {
+      let takeIdx = 0;
       zone.querySelectorAll(".hand-card").forEach((el) => {
         const c = el.dataset.card;
         if (newCards.indexOf(c) < 0 || el.classList.contains("deal")) return;
@@ -615,6 +621,8 @@ window.App = window.App || {};
         if (App.game._takeFly && takenMap[c]) {
           src = takenMap[c];
           el.classList.add("fly-take");
+          el.style.animationDelay = takeIdx * 90 + "ms";
+          takeIdx++;
         }
         const dest = scenePosOf(el);
         if (dest) {
@@ -623,6 +631,27 @@ window.App = window.App || {};
           el.style.setProperty("--mx", "40px");
           el.style.setProperty("--my", "-34px");
         }
+      });
+    }
+
+    if (App.game._takeFly && takenMap) {
+      const myTook = new Set(newCards);
+      const dest = oppPos();
+      let i = 0;
+      Object.keys(takenMap).forEach((c) => {
+        if (myTook.has(c)) return;
+        const src = takenMap[c];
+        floatCard({
+          srcX: src.x,
+          srcY: src.y,
+          dstX: dest.x,
+          dstY: dest.y,
+          back: true,
+          delay: i * 90,
+          dur: 800,
+          rot: -6 + i * 4,
+        });
+        i++;
       });
     }
 
@@ -776,13 +805,9 @@ window.App = window.App || {};
           dropP.x <= (zr.right - srect.left) / sx &&
           dropP.y < ((hr ? hr.top : zr.bottom) - srect.top) / sy - 20;
         if (onTable && (s.can_attack || s.can_throw)) {
-          if (canAddCard(s, card)) {
-            sent = true;
-            send({ type: "attack", card });
-            clearSel();
-          } else {
-            App.toast("Эту карту нельзя подложить");
-          }
+          sent = true;
+          send({ type: "attack", card });
+          clearSel();
         }
       }
     }
@@ -796,20 +821,6 @@ window.App = window.App || {};
     d.el.classList.remove("dragging");
     const hz = sceneEl("hand-zone");
     if (hz) hz.style.zIndex = "";
-  }
-
-  function canAddCard(s, card) {
-    if (!card) return false;
-    if (!s.table.length) return true;
-    if (s.shulers) return true;
-    const max = Math.min(6, s.defender_cards != null ? s.defender_cards : s.opponent_cards);
-    if (s.table.length >= max) return false;
-    const ranks = new Set();
-    s.table.forEach((p) => {
-      ranks.add(rankOf(p[0]));
-      if (p[1]) ranks.add(rankOf(p[1]));
-    });
-    return ranks.has(rankOf(card));
   }
 
   function clearSel() {
@@ -835,7 +846,9 @@ window.App = window.App || {};
     const sel = App.game.selected;
     const html = [];
 
-    if (s.finished) {
+    if (s.opponent_gone && !s.finished) {
+      html.push(`<div class="turn-text opp-gone">Соперник отключился. Ждём...</div>`);
+    } else if (s.finished) {
       if (s.round > 0 && s.winner != null && !App.game._finishShown) {
         App.game._finishShown = true;
         showFinishOverlay(s.winner === App.game.pid);
@@ -853,11 +866,9 @@ window.App = window.App || {};
       }
     }
 
-    if (s.table.length && (s.can_attack || s.can_throw) && sel && canAddCard(s, sel)) {
+    if (!s.opponent_gone && s.table.length && (s.can_attack || s.can_throw) && sel) {
       html.push(`<button class="big-btn ghost" id="act-throw">Подложить</button>`);
     }
-
-    if (!s.finished && s.opponent_gone) html.push(`<div class="turn-text opp-gone">Соперник отключился. Ждём...</div>`);
 
     zone.innerHTML = html.join("");
 
