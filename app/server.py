@@ -176,8 +176,15 @@ async def join_room_handler(request):
     })
 
 
+@web.middleware
+async def no_cache_middleware(request, handler):
+    resp = await handler(request)
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
 def build_app() -> web.Application:
-    app = web.Application()
+    app = web.Application(middlewares=[no_cache_middleware])
     app.router.add_get("/", index_handler)
     app.router.add_static("/css", WEB_DIR / "css")
     app.router.add_static("/js", WEB_DIR / "js")

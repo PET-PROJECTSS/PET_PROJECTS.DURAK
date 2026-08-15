@@ -156,6 +156,12 @@ window.App = window.App || {};
     load();
 
     function buildRows(rooms) {
+      const fmtStake = (v) => {
+        const n = Number(v) || 0;
+        if (n >= 1000000) return (n % 1000000 === 0 ? n / 1000000 : Math.round((n / 1000000) * 10) / 10) + "M";
+        if (n >= 1000) return (n % 1000 === 0 ? n / 1000 : Math.round((n / 1000) * 10) / 10) + "K";
+        return String(n);
+      };
       return rooms
         .map((r) => {
           const modeIcon = r.mode === "perevodnoi" ? "game_icon_perevodnoi_durak.png" : "game_icon_podkidnoi_durak.png";
@@ -164,7 +170,7 @@ window.App = window.App || {};
           <div class="row ${busy ? "full" : ""}" data-join="${esc(r.id)}" data-private="${r.private ? 1 : 0}">
             <div class="left">
               <div class="name2">${esc(r.name)}${r.private ? `<img class="lockmini" src="${icon("game_icon_lock.png")}" alt="">` : ""}</div>
-              <div class="meta"><span>100</span><span class="flag"></span><span>${r.players}/${r.max}</span><span class="people">◔</span></div>
+              <div class="meta"><span>${fmtStake(r.stake)}</span><span class="flag"></span><span>${r.players}/${r.max}</span><span class="people">◔</span></div>
             </div>
             <div class="rightside">
               <div class="chips">

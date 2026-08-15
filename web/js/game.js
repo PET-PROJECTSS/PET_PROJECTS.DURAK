@@ -836,7 +836,7 @@ window.App = window.App || {};
     const html = [];
 
     if (s.finished) {
-      if (!App.game._finishShown) {
+      if (s.round > 0 && s.winner != null && !App.game._finishShown) {
         App.game._finishShown = true;
         showFinishOverlay(s.winner === App.game.pid);
       }
@@ -899,17 +899,23 @@ window.App = window.App || {};
   function showFinishOverlay(win) {
     const scene = sceneEl("game-scene");
     if (!scene) return;
+    const g = App.game;
     const overlay = document.createElement("div");
     overlay.className = "finish-overlay";
     overlay.innerHTML = `
       <div class="finish-card ${win ? "win" : "lose"}">
         <div class="finish-title">${win ? "Победа!" : "Поражение"}</div>
         <div class="finish-sub">${win ? "Вы выиграли партию" : "Повезёт в следующий раз"}</div>
+        <button class="finish-exit" type="button">Выйти</button>
       </div>`;
     scene.appendChild(overlay);
+    overlay.querySelector(".finish-exit").addEventListener("click", () => {
+      if (g) g._leaving = true;
+      leaveGame();
+    });
     setTimeout(() => {
-      if (App.game) App.leaveGame();
-    }, 2800);
+      if (App.game === g) leaveGame();
+    }, 3500);
   }
 
   /* ---------- раздача ---------- */
